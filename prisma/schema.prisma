@@ -29,7 +29,9 @@ model User {
   updatedAt                DateTime  @updatedAt
 
   // Relations
-  sessions Session[]
+  sessions     Session[]
+  documents    Document[]
+  chatSessions ChatSession[]
 
   @@map("users")
 }
@@ -68,4 +70,77 @@ model EmailVerification {
   createdAt DateTime @default(now())
 
   @@map("email_verifications")
+}
+
+model Document {
+  id         String   @id @default(cuid())
+  title      String
+  content    String
+  type       String // pdf, docx, txt, markdown, etc.
+  category   String? // policies, procedures, faq, etc.
+  tags       String[] // Array of tags for better categorization
+  fileUrl    String? // URL to the original file
+  fileSize   Int? // File size in bytes
+  uploadedBy String
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  user   User            @relation(fields: [uploadedBy], references: [id])
+  chunks DocumentChunk[]
+
+  @@index([category])
+  @@index([tags])
+  @@map("documents")
+}
+
+model DocumentChunk {
+  id         String   @id @default(cuid())
+  documentId String
+  content    String
+  chunkIndex Int // Order of chunk in document
+  embedding  String? // Vector embedding as JSON string
+  metadata   Json? // Additional metadata
+  createdAt  DateTime @default(now())
+
+  // Relations
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId])
+  @@index([chunkIndex])
+  @@map("document_chunks")
+}
+
+model ChatSession {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user     User          @relation(fields: [userId], references: [id])
+  messages ChatMessage[]
+
+  @@index([userId])
+  @@map("chat_sessions")
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  sessionId String
+  type      String // user, assistant, system
+  content   String
+  sources   Json? // Array of source documents used
+  metadata  Json? // Additional metadata
+  createdAt DateTime @default(now())
+
+  // Relations
+  session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([createdAt])
+  @@map("chat_messages")
 }

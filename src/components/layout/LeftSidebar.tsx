@@ -22,6 +22,7 @@ interface NavItemProps {
     active?: boolean
     count?: number
     onClick?: () => void
+    href?: string
 }
 
 const NavItem: React.FC<NavItemProps> = ({
@@ -29,13 +30,22 @@ const NavItem: React.FC<NavItemProps> = ({
     label,
     active = false,
     count,
-    onClick
+    onClick,
+    href
 }) => {
+    const handleClick = () => {
+        if (href) {
+            window.location.href = href
+        } else if (onClick) {
+            onClick()
+        }
+    }
+
     return (
         <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            onClick={onClick}
+            onClick={handleClick}
             className={cn(
                 'flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-left transition-all duration-200 group',
                 active
@@ -217,6 +227,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ className }) => {
                     <NavItem
                         icon={FileText}
                         label="Knowledge Base"
+                        href="/knowledge-base"
                     />
                     <NavItem
                         icon={Settings}
