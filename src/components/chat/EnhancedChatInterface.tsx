@@ -272,10 +272,12 @@ export const EnhancedChatInterface: React.FC<EnhancedChatInterfaceProps> = ({ cl
         setIsLoading(true)
 
         try {
+            const token = localStorage.getItem('auth_token')
             const response = await fetch('/api/chat/messages', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
                 },
                 body: JSON.stringify({
                     message: content.trim(),
@@ -325,9 +327,13 @@ export const EnhancedChatInterface: React.FC<EnhancedChatInterfaceProps> = ({ cl
         try {
             const formData = new FormData()
             formData.append('file', file)
+            const token = localStorage.getItem('auth_token')
 
             const response = await fetch('/api/documents/upload', {
                 method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
                 body: formData,
             })
 

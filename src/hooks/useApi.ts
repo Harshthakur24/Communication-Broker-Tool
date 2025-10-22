@@ -68,8 +68,21 @@ function useApi<T>(url: string, options?: RequestInit): ApiResponse<T> {
         setLoading(true)
         setError(null)
         
+        // Get auth token from localStorage
+        const token = localStorage.getItem('auth_token')
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+          ...(options?.headers as Record<string, string>),
+        }
+        
+        // Add authorization header if token exists
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`
+        }
+        
         const response = await fetch(url, {
           credentials: 'include',
+          headers,
           ...options,
         })
 
@@ -139,11 +152,20 @@ export function useMutation<T, P = any>(
       setLoading(true)
       setError(null)
 
+      // Get auth token from localStorage
+      const token = localStorage.getItem('auth_token')
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      }
+      
+      // Add authorization header if token exists
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+
       const response = await fetch(url, {
         method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         credentials: 'include',
         body: data ? JSON.stringify(data) : undefined,
       })

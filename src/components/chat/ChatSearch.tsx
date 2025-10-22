@@ -18,7 +18,7 @@ interface SearchResult {
 }
 
 interface ChatSearchProps {
-    onResultSelect: (result: SearchResult) => void
+    onResultSelect?: (result: SearchResult) => void
     onSearchQuery?: (query: string) => void
     className?: string
 }
@@ -65,10 +65,12 @@ export const ChatSearch: React.FC<ChatSearchProps> = ({
         saveRecentSearch(query.trim())
 
         try {
+            const token = localStorage.getItem('auth_token')
             const response = await fetch('/api/documents/search', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
                 },
                 body: JSON.stringify({
                     query: query.trim(),
@@ -122,7 +124,7 @@ export const ChatSearch: React.FC<ChatSearchProps> = ({
 
     // Handle result click
     const handleResultClick = (result: SearchResult) => {
-        onResultSelect(result)
+        onResultSelect?.(result)
         setIsOpen(false)
     }
 
@@ -183,10 +185,9 @@ export const ChatSearch: React.FC<ChatSearchProps> = ({
                     onClick={handleSearch}
                     variant="outline"
                     size="sm"
-                    className="h-9 px-3"
+                    className="h-9 w-9 p-0"
                 >
-                    <Search className="h-4 w-4 mr-1" />
-                    Search
+                    <Search className="h-4 w-4" />
                 </Button>
             </div>
 

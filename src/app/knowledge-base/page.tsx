@@ -56,7 +56,12 @@ export default function KnowledgeBasePage() {
 
     const loadDocuments = async () => {
         try {
-            const response = await fetch('/api/documents')
+            const token = localStorage.getItem('auth_token')
+            const response = await fetch('/api/documents', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            })
             if (response.ok) {
                 const data = await response.json()
                 setDocuments(data.documents || [])
@@ -89,8 +94,12 @@ export default function KnowledgeBasePage() {
         if (tags) formData.append('tags', tags)
 
         try {
+            const token = localStorage.getItem('auth_token')
             const response = await fetch('/api/documents/upload', {
                 method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
                 body: formData
             })
 
@@ -123,8 +132,12 @@ export default function KnowledgeBasePage() {
 
         setDeleting(true)
         try {
+            const token = localStorage.getItem('auth_token')
             const response = await fetch(`/api/documents/${documentToDelete.id}`, {
-                method: 'DELETE'
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
             })
 
             if (response.ok) {

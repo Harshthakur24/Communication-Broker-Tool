@@ -74,7 +74,12 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ className }) =
                 sortOrder,
             })
 
-            const response = await fetch(`/api/documents?${params}`)
+            const token = localStorage.getItem('auth_token')
+            const response = await fetch(`/api/documents?${params}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            })
             const data = await response.json()
 
             if (response.ok) {
@@ -98,8 +103,12 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ className }) =
         if (!confirm('Are you sure you want to delete this document?')) return
 
         try {
+            const token = localStorage.getItem('auth_token')
             const response = await fetch(`/api/documents?id=${documentId}`, {
                 method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
             })
 
             if (response.ok) {

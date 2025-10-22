@@ -131,8 +131,12 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
                     : f
             ))
 
+            const token = localStorage.getItem('auth_token')
             const response = await fetch('/api/documents/upload', {
                 method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
                 body: formData,
             })
 

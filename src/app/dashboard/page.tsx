@@ -90,7 +90,12 @@ export default function Dashboard() {
 
     const loadChatHistory = async () => {
         try {
-            const response = await fetch('/api/chat/messages')
+            const token = localStorage.getItem('auth_token')
+            const response = await fetch('/api/chat/messages', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            })
             if (response.ok) {
                 const data = await response.json()
                 const mapped: Message[] = (data.messages || []).map((m: any) => ({
@@ -108,7 +113,12 @@ export default function Dashboard() {
 
     const loadDocuments = async () => {
         try {
-            const response = await fetch('/api/documents')
+            const token = localStorage.getItem('auth_token')
+            const response = await fetch('/api/documents', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            })
             if (response.ok) {
                 const data = await response.json()
                 setDocuments(data.documents || [])
@@ -120,7 +130,12 @@ export default function Dashboard() {
 
     const loadIntegrationEvents = async () => {
         try {
-            const response = await fetch('/api/notifications')
+            const token = localStorage.getItem('auth_token')
+            const response = await fetch('/api/notifications', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            })
             if (response.ok) {
                 const data = await response.json()
                 setIntegrationEvents(data.notifications || [])
@@ -153,10 +168,12 @@ export default function Dashboard() {
         setLoading(true)
 
         try {
+            const token = localStorage.getItem('auth_token')
             const response = await fetch('/api/chat/messages', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
                 },
                 body: JSON.stringify({
                     message: inputMessage,
