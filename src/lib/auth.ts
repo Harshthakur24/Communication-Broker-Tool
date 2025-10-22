@@ -18,9 +18,9 @@ export const comparePassword = async (password: string, hashedPassword: string):
 }
 
 export const generateToken = (payload: JWTPayload): string => {
-  return jwt.sign(payload, process.env.JWT_SECRET!, {
-    expiresIn: process.env.JWT_EXPIRES_IN || '7d',
-  })
+  const secret = process.env.JWT_SECRET || 'fallback-secret'
+  const expiresIn = process.env.JWT_EXPIRES_IN || '7d'
+  return jwt.sign(payload, secret, { expiresIn })
 }
 
 export const verifyToken = (token: string): JWTPayload | null => {
@@ -160,22 +160,6 @@ export const validatePassword = (password: string): { isValid: boolean; errors: 
 
   if (password.length < 8) {
     errors.push('Password must be at least 8 characters long')
-  }
-
-  if (!/[A-Z]/.test(password)) {
-    errors.push('Password must contain at least one uppercase letter')
-  }
-
-  if (!/[a-z]/.test(password)) {
-    errors.push('Password must contain at least one lowercase letter')
-  }
-
-  if (!/\d/.test(password)) {
-    errors.push('Password must contain at least one number')
-  }
-
-  if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-    errors.push('Password must contain at least one special character')
   }
 
   return {
