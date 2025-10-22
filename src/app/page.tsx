@@ -311,13 +311,13 @@ export default function Home() {
                 Transform your company communication with AI-powered knowledge management.
               </p>
               <div className="flex gap-3">
-                <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg bg-purple-100 hover:bg-purple-200 flex items-center justify-center transition-colors cursor-pointer">
+                <a href="https://x.com/HarshThaku44904" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg bg-purple-100 hover:bg-purple-200 flex items-center justify-center transition-colors cursor-pointer">
                   <Twitter className="w-4 h-4 text-purple-600" />
                 </a>
-                <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg bg-purple-100 hover:bg-purple-200 flex items-center justify-center transition-colors cursor-pointer">
+                <a href="https://www.linkedin.com/in/harshthakur76/" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg bg-purple-100 hover:bg-purple-200 flex items-center justify-center transition-colors cursor-pointer">
                   <Linkedin className="w-4 h-4 text-purple-600" />
                 </a>
-                <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg bg-purple-100 hover:bg-purple-200 flex items-center justify-center transition-colors cursor-pointer">
+                <a href="https://github.com/Harshthakur24/" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg bg-purple-100 hover:bg-purple-200 flex items-center justify-center transition-colors cursor-pointer">
                   <Github className="w-4 h-4 text-purple-600" />
                 </a>
               </div>
@@ -351,15 +351,15 @@ export default function Home() {
               <ul className="space-y-3">
                 <li className="flex items-center gap-2 text-gray-600 text-sm">
                   <Mail className="w-4 h-4 text-purple-600" />
-                  <a href="mailto:hello@aihub.com" className="hover:text-purple-600 transition-colors">hello@aihub.com</a>
+                  <a href="mailto:thakur2004harsh@gmail.com" className="hover:text-purple-600 transition-colors">hello@aihub.com</a>
                 </li>
                 <li className="flex items-center gap-2 text-gray-600 text-sm">
                   <Phone className="w-4 h-4 text-purple-600" />
-                  <a href="tel:+1234567890" className="hover:text-purple-600 transition-colors">+1 (234) 567-890</a>
+                  <a href="tel: +91 9311840704" className="hover:text-purple-600 transition-colors">+1 (234) 567-890</a>
                 </li>
                 <li className="flex items-start gap-2 text-gray-600 text-sm">
                   <MapPin className="w-4 h-4 text-purple-600 mt-0.5" />
-                  <span>123 AI Street, San Francisco, CA 94102</span>
+                  <span>New Delhi, India</span>
                 </li>
               </ul>
             </div>

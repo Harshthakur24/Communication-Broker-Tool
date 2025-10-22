@@ -1,8 +1,8 @@
 // Gemini-based LLM utilities
-import { GoogleGenAI } from "@google/genai"
+import { GoogleGenerativeAI } from "@google/generative-ai"
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || ''
-const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY })
+const ai = new GoogleGenerativeAI(GEMINI_API_KEY)
 
 // Generate embeddings for text (single)
 export async function generateEmbedding(text: string): Promise<number[]> {
@@ -100,12 +100,10 @@ export async function generateRAGResponse(
     const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash'
     const prompt = systemInstruction + '\n\n' + userMessage
 
-    const response = await ai.models.generateContent({
-      model,
-      contents: prompt,
-    })
+    const model_instance = ai.getGenerativeModel({ model })
+    const response = await model_instance.generateContent(prompt)
 
-    return response.text || 'I apologize, but I could not generate a response.'
+    return response.response.text() || 'I apologize, but I could not generate a response.'
   } catch (error) {
     console.error('Error generating RAG response (Gemini):', error)
     throw new Error('Failed to generate AI response')
@@ -123,12 +121,10 @@ export async function generateSimpleResponse(userMessage: string): Promise<strin
     
     const systemPrompt = `You are a helpful colleague at our company. Respond naturally and professionally. Avoid AI-like language or disclaimers. Be direct and confident in your responses.`
 
-    const response = await ai.models.generateContent({
-      model,
-      contents: `${systemPrompt}\n\nUser: ${userMessage}`,
-    })
+    const model_instance = ai.getGenerativeModel({ model })
+    const response = await model_instance.generateContent(`${systemPrompt}\n\nUser: ${userMessage}`)
 
-    return response.text || 'I don\'t have that information available right now.'
+    return response.response.text() || 'I don\'t have that information available right now.'
   } catch (error) {
     console.error('Error generating simple response (Gemini):', error)
     return 'I\'m having trouble accessing our systems right now. Please try again in a moment.'
