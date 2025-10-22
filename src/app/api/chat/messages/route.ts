@@ -4,7 +4,8 @@ import { prisma } from '@/lib/database'
 import { getRAGContext } from '@/lib/ragService'
 import { generateRAGResponse, generateSimpleResponse } from '@/lib/ai'
 
-
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   return withAuth(request, async (authenticatedRequest) => {
