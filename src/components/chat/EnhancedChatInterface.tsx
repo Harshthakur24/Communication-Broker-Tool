@@ -1,402 +1,253 @@
-'use client'
+'use client';
 
-import React, { useState, useRef, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import {
-    Send,
-    Paperclip,
-    Smile,
-    Bot,
-    User,
-    MoreHorizontal,
-    Sparkles,
-    Loader2,
-    CheckCircle,
-    AlertCircle
-} from 'lucide-react'
-import { Button, Input, LoadingDots, Tooltip } from '@/components/ui'
-import { cn } from '@/lib/utils'
-import { useChatMessages, useChatSuggestions } from '@/hooks/useApi'
+import React, { useState, useRef, useEffect } from 'react';
+import { Send, Bot, User, Loader2, Paperclip, Mic, MicOff } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { MessageBubble } from './MessageBubble';
+import { TypingIndicator } from './TypingIndicator';
+import { CommandHistory } from './CommandHistory';
+import { SourceAttribution } from './SourceAttribution';
 
 interface Message {
-    id: string
-    type: 'user' | 'assistant'
-    content: string
-    timestamp: Date
-    userId?: string
-    userName?: string
-    userAvatar?: string
-    sources?: Array<{ title: string; url: string }>
+  id: string;
+  type: 'user' | 'assistant' | 'system' | 'notification';
+  content: string;
+  timestamp: Date;
+  sources?: Array<{
+    title: string;
+    url?: string;
+    type: string;
+    confidence: number;
+  }>;
+  metadata?: Record<string, any>;
 }
 
 interface EnhancedChatInterfaceProps {
-    className?: string
+  onSendMessage: (message: string) => Promise<void>;
+  messages: Message[];
+  isLoading: boolean;
+  onFileUpload?: (file: File) => Promise<void>;
+  onVoiceInput?: (audio: Blob) => Promise<void>;
+  suggestions?: string[];
+  onSuggestionClick?: (suggestion: string) => void;
 }
 
-const WelcomeMessage: React.FC<{ onPromptClick: (prompt: string) => void }> = ({ onPromptClick }) => {
-    const { data: suggestionsData } = useChatSuggestions()
-    const suggestions = suggestionsData?.suggestions || []
+export function EnhancedChatInterface({
+  onSendMessage,
+  messages,
+  isLoading,
+  onFileUpload,
+  onVoiceInput,
+  suggestions = [],
+  onSuggestionClick
+}: EnhancedChatInterfaceProps) {
+  const [input, setInput] = useState('');
+  const [isRecording, setIsRecording] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
-    const suggestedPrompts = [
-        "What are the current project priorities?",
-        "Show me recent team updates",
-        "Summarize yesterday's meetings",
-        "Is the new remote work policy live?",
-        "Show me recent changes to the API documentation"
-    ]
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
-    return (
-        <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: 'easeOut' }}
-            className="text-center py-16"
-        >
-            <motion.div
-                initial={{ scale: 0.8 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                className="w-24 h-24 bg-gradient-to-br from-purple-100 to-purple-200 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-lg ring-2 ring-purple-200"
-            >
-                <Sparkles className="w-12 h-12 text-purple-600" />
-            </motion.div>
+  const handleSend = async () => {
+    if (!input.trim() || isLoading) return;
 
-            <motion.h3
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent mb-4"
-            >
-                Welcome to your AI Communication Hub
-            </motion.h3>
+    const message = input.trim();
+    setInput('');
+    await onSendMessage(message);
+  };
 
-            <motion.p
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-                className="text-gray-600 mb-10 max-w-lg mx-auto leading-relaxed text-lg"
-            >
-                Ask me anything about projects, policies, or team updates. I'm always up-to-date with the latest information and can help you stay connected with your team.
-            </motion.p>
-
-            <div className="flex flex-wrap justify-center gap-4 max-w-3xl mx-auto">
-                {suggestedPrompts.map((prompt, index) => (
-                    <motion.button
-                        key={prompt}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3, delay: 0.5 + index * 0.1 }}
-                        whileHover={{ scale: 1.05, y: -2 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => onPromptClick(prompt)}
-                        className="px-6 py-3 text-sm bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-xl hover:border-purple-300 hover:bg-purple-50/80 transition-all duration-300 text-gray-700 hover:text-purple-700 shadow-md hover:shadow-lg font-medium"
-                    >
-                        {prompt}
-                    </motion.button>
-                ))}
-            </div>
-        </motion.div>
-    )
-}
-
-const MessageBubble: React.FC<{ message: Message; index: number }> = ({ message, index }) => {
-    const isUser = message.type === 'user'
-
-    return (
-        <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: index * 0.1 }}
-            className={cn(
-                'flex items-start space-x-3 mb-6',
-                isUser ? 'flex-row-reverse space-x-reverse' : ''
-            )}
-        >
-            <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: index * 0.1 + 0.2, type: "spring", stiffness: 200 }}
-                className={cn(
-                    'w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0',
-                    isUser
-                        ? 'bg-gradient-to-br from-purple-500 to-purple-600'
-                        : 'bg-gradient-to-br from-gray-100 to-gray-200'
-                )}
-            >
-                {isUser ? (
-                    <User className="w-4 h-4 text-white" />
-                ) : (
-                    <Bot className="w-4 h-4 text-gray-600" />
-                )}
-            </motion.div>
-
-            <motion.div
-                initial={{ opacity: 0, x: isUser ? 20 : -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 + 0.1 }}
-                className={cn(
-                    'max-w-3xl px-4 py-3 rounded-2xl shadow-sm',
-                    isUser
-                        ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white'
-                        : 'bg-white border border-gray-200 text-gray-900'
-                )}
-            >
-                <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
-
-                {message.sources && message.sources.length > 0 && (
-                    <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        transition={{ delay: index * 0.1 + 0.3 }}
-                        className="mt-3 pt-3 border-t border-gray-200"
-                    >
-                        <p className="text-xs text-gray-500 mb-2">Sources:</p>
-                        <div className="space-y-1">
-                            {message.sources.map((source, idx) => (
-                                <a
-                                    key={idx}
-                                    href={source.url}
-                                    className="text-xs text-purple-600 hover:text-purple-700 underline block"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                >
-                                    {source.title}
-                                </a>
-                            ))}
-                        </div>
-                    </motion.div>
-                )}
-
-                <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: index * 0.1 + 0.4 }}
-                    className={cn(
-                        'text-xs mt-2',
-                        isUser ? 'text-purple-100' : 'text-gray-500'
-                    )}
-                >
-                    {message.timestamp.toLocaleTimeString()}
-                </motion.p>
-            </motion.div>
-        </motion.div>
-    )
-}
-
-export const EnhancedChatInterface: React.FC<EnhancedChatInterfaceProps> = ({ className }) => {
-    const [messages, setMessages] = useState<Message[]>([])
-    const [inputValue, setInputValue] = useState('')
-    const [isLoading, setIsLoading] = useState(false)
-    const messagesEndRef = useRef<HTMLDivElement>(null)
-    const inputRef = useRef<HTMLTextAreaElement>(null)
-
-    const { data: messagesData, refetch: refetchMessages } = useChatMessages()
-
-    useEffect(() => {
-        if (messagesData?.messages) {
-            setMessages(messagesData.messages.map(msg => ({
-                ...msg,
-                timestamp: new Date(msg.timestamp)
-            })))
-        }
-    }, [messagesData])
-
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
     }
+  };
 
-    useEffect(() => {
-        scrollToBottom()
-    }, [messages])
-
-    const handleSendMessage = async (content: string) => {
-        if (!content.trim() || isLoading) return
-
-        const userMessage: Message = {
-            id: Date.now().toString(),
-            type: 'user',
-            content: content.trim(),
-            timestamp: new Date(),
-            userId: 'current-user',
-            userName: 'You'
-        }
-
-        setMessages(prev => [...prev, userMessage])
-        setInputValue('')
-        setIsLoading(true)
-
-        try {
-            const response = await fetch('/api/chat/messages', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ message: content.trim() }),
-            })
-
-            const data = await response.json()
-
-            if (response.ok && data.message) {
-                const aiMessage: Message = {
-                    ...data.message,
-                    timestamp: new Date(data.message.timestamp)
-                }
-                setMessages(prev => [...prev, aiMessage])
-            } else {
-                throw new Error(data.error || 'Failed to send message')
-            }
-        } catch (error) {
-            console.error('Error sending message:', error)
-            // Add error message
-            const errorMessage: Message = {
-                id: Date.now().toString(),
-                type: 'assistant',
-                content: 'Sorry, I encountered an error. Please try again.',
-                timestamp: new Date()
-            }
-            setMessages(prev => [...prev, errorMessage])
-        } finally {
-            setIsLoading(false)
-        }
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && onFileUpload) {
+      onFileUpload(file);
     }
+  };
 
-    const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault()
-            handleSendMessage(inputValue)
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        audioChunksRef.current.push(event.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
+        if (onVoiceInput) {
+          await onVoiceInput(audioBlob);
         }
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (error) {
+      console.error('Error starting recording:', error);
     }
+  };
 
-    const handlePromptClick = (prompt: string) => {
-        setInputValue(prompt)
-        inputRef.current?.focus()
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
     }
+  };
 
-    return (
-        <div className={cn('flex flex-col h-full bg-white', className)}>
-            {/* Chat Header */}
-            <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="p-4 border-b border-gray-200/50 bg-gradient-to-r from-purple-50/80 to-white/80 backdrop-blur-sm"
-            >
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                        <motion.div
-                            whileHover={{ rotate: 5, scale: 1.05 }}
-                            className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg ring-2 ring-purple-200"
-                        >
-                            <Bot className="w-6 h-6 text-white" />
-                        </motion.div>
-                        <div>
-                            <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent">
-                                AI Assistant
-                            </h1>
-                            <p className="text-sm text-gray-600 font-medium">Always up-to-date company knowledge</p>
-                        </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        <motion.div
-                            whileHover={{ scale: 1.05 }}
-                            className="flex items-center space-x-2 px-3 py-1.5 bg-green-50 rounded-full border border-green-200"
-                        >
-                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                            <span className="text-xs text-green-700 font-medium">Online</span>
-                        </motion.div>
-                        <Tooltip content="More options">
-                            <Button variant="ghost" size="icon" className="hover:bg-purple-50">
-                                <MoreHorizontal className="w-5 h-5" />
-                            </Button>
-                        </Tooltip>
-                    </div>
-                </div>
-            </motion.div>
+  const toggleRecording = () => {
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  };
 
-            {/* Messages Container */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-6">
-                {messages.length === 0 ? (
-                    <WelcomeMessage onPromptClick={handlePromptClick} />
-                ) : (
-                    <>
-                        {messages.map((message, index) => (
-                            <MessageBubble key={message.id} message={message} index={index} />
-                        ))}
-
-                        {isLoading && (
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="flex items-start space-x-3 mb-6"
-                            >
-                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center flex-shrink-0">
-                                    <Bot className="w-4 h-4 text-gray-600" />
-                                </div>
-                                <div className="bg-white border border-gray-200 rounded-2xl px-4 py-3 shadow-sm">
-                                    <div className="flex items-center space-x-2">
-                                        <LoadingDots />
-                                        <span className="text-sm text-gray-500">AI is thinking...</span>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        )}
-
-                        <div ref={messagesEndRef} />
-                    </>
-                )}
-            </div>
-
-            {/* Message Input */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="p-4 border-t border-gray-200/50 bg-white/80 backdrop-blur-sm"
-            >
-                <div className="relative">
-                    <motion.textarea
-                        ref={inputRef}
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        placeholder="Ask me anything about projects, policies, or team updates..."
-                        disabled={isLoading}
-                        className="w-full px-4 py-3 pr-16 border border-gray-300/50 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-50 disabled:cursor-not-allowed transition-all duration-300 bg-white/80 backdrop-blur-sm hover:bg-white/90 focus:bg-white shadow-sm"
-                        rows={1}
-                        style={{ minHeight: '52px', maxHeight: '120px' }}
-                        whileFocus={{ scale: 1.01 }}
-                        transition={{ duration: 0.2 }}
-                    />
-                    <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
-                        <Tooltip content="Attach file">
-                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-purple-50">
-                                <Paperclip className="w-4 h-4" />
-                            </Button>
-                        </Tooltip>
-                        <Tooltip content="Add emoji">
-                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-purple-50">
-                                <Smile className="w-4 h-4" />
-                            </Button>
-                        </Tooltip>
-                        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                            <Button
-                                onClick={() => handleSendMessage(inputValue)}
-                                disabled={!inputValue.trim() || isLoading}
-                                size="icon"
-                                className="h-8 w-8 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 shadow-lg"
-                            >
-                                <Send className="w-4 h-4" />
-                            </Button>
-                        </motion.div>
-                    </div>
-                </div>
-                <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="text-xs text-gray-500 mt-2 flex items-center"
-                >
-                    <span className="mr-2">💡</span>
-                    Press Enter to send, Shift+Enter for new line
-                </motion.p>
-            </motion.div>
+  return (
+    <div className="flex flex-col h-full bg-white">
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
+            <Bot className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">AI Assistant</h2>
+            <p className="text-sm text-gray-500">Internal Communication Hub</p>
+          </div>
         </div>
-    )
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowHistory(!showHistory)}
+            className="text-purple-600 border-purple-200 hover:bg-purple-50"
+          >
+            History
+          </Button>
+        </div>
+      </div>
+
+      {/* Messages Area */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {messages.map((message) => (
+          <div key={message.id} className="flex flex-col">
+            <MessageBubble message={message} />
+            {message.sources && message.sources.length > 0 && (
+              <SourceAttribution sources={message.sources} />
+            )}
+          </div>
+        ))}
+        
+        {isLoading && <TypingIndicator />}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Suggestions */}
+      {suggestions.length > 0 && (
+        <div className="px-4 py-2 border-t border-gray-200 bg-gray-50">
+          <div className="flex flex-wrap gap-2">
+            {suggestions.map((suggestion, index) => (
+              <Badge
+                key={index}
+                variant="secondary"
+                className="cursor-pointer hover:bg-purple-100 text-purple-700 border-purple-200"
+                onClick={() => onSuggestionClick?.(suggestion)}
+              >
+                {suggestion}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Input Area */}
+      <div className="p-4 border-t border-gray-200 bg-white">
+        <div className="flex items-end space-x-2">
+          <div className="flex-1 relative">
+            <Input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Ask me anything about projects, policies, or procedures..."
+              className="pr-20 border-purple-200 focus:border-purple-400 focus:ring-purple-400"
+              disabled={isLoading}
+            />
+            <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                className="h-8 w-8 p-0 text-gray-400 hover:text-purple-600"
+                disabled={isLoading}
+              >
+                <Paperclip className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleRecording}
+                className={`h-8 w-8 p-0 ${
+                  isRecording 
+                    ? 'text-red-600 hover:text-red-700' 
+                    : 'text-gray-400 hover:text-purple-600'
+                }`}
+                disabled={isLoading}
+              >
+                {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+              </Button>
+            </div>
+          </div>
+          <Button
+            onClick={handleSend}
+            disabled={!input.trim() || isLoading}
+            className="bg-purple-600 hover:bg-purple-700 text-white px-6"
+          >
+            {isLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Send className="w-4 h-4" />
+            )}
+          </Button>
+        </div>
+        
+        {/* File Input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          className="hidden"
+          onChange={handleFileUpload}
+          accept=".pdf,.docx,.txt,.md"
+        />
+      </div>
+
+      {/* Command History Sidebar */}
+      {showHistory && (
+        <CommandHistory
+          onClose={() => setShowHistory(false)}
+          onCommandSelect={(command) => {
+            setInput(command);
+            setShowHistory(false);
+          }}
+        />
+      )}
+    </div>
+  );
 }
