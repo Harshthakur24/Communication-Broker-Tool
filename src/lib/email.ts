@@ -1,10 +1,10 @@
-import nodemailer from 'nodemailer'
+import * as nodemailer from 'nodemailer'
 
 let transporter: nodemailer.Transporter | null = null
 
 const getTransporter = () => {
   if (!transporter) {
-    transporter = nodemailer.createTransporter({
+    transporter = nodemailer.createTransport({
       host: process.env.EMAIL_HOST || 'smtp.example.com',
       port: parseInt(process.env.EMAIL_PORT || '587'),
       secure: false, // true for 465, false for other ports
@@ -58,7 +58,7 @@ export const sendVerificationEmail = async (email: string, token: string): Promi
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
         .header { background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
         .content { background: white; padding: 30px; border: 1px solid #e5e7eb; }
-        .button { display: inline-block; background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; }
+        .button { display: inline-block; background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%); color: white !important; padding: 12px 30px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; }
         .footer { background: #f9fafb; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; font-size: 14px; color: #6b7280; }
       </style>
     </head>
@@ -106,7 +106,7 @@ export const sendPasswordResetEmail = async (email: string, token: string): Prom
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
         .header { background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
         .content { background: white; padding: 30px; border: 1px solid #e5e7eb; }
-        .button { display: inline-block; background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; }
+        .button { display: inline-block; background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%); color: white !important; padding: 12px 30px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; }
         .footer { background: #f9fafb; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; font-size: 14px; color: #6b7280; }
         .warning { background: #fef3c7; border: 1px solid #f59e0b; padding: 15px; border-radius: 8px; margin: 20px 0; }
       </style>
@@ -160,7 +160,7 @@ export const sendWelcomeEmail = async (email: string, name: string): Promise<boo
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
         .header { background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
         .content { background: white; padding: 30px; border: 1px solid #e5e7eb; }
-        .button { display: inline-block; background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; }
+        .button { display: inline-block; background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%); color: white !important; padding: 12px 30px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; }
         .footer { background: #f9fafb; padding: 20px; text-align: center; border-radius: 0 0 10px 10px; font-size: 14px; color: #6b7280; }
         .feature { background: #f8fafc; padding: 15px; border-radius: 8px; margin: 10px 0; }
       </style>

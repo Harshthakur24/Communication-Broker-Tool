@@ -6,6 +6,7 @@ import { Eye, EyeOff, Mail, Lock, AlertCircle, Loader2 } from 'lucide-react'
 import { Button, Input } from '@/components/ui'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/contexts/AuthContext'
+import toast from 'react-hot-toast'
 
 interface LoginFormProps {
     onSuccess?: () => void
@@ -37,8 +38,10 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         const result = await login(formData.email, formData.password)
 
         if (result.success) {
+            toast.success('Login successful!')
             onSuccess?.()
         } else {
+            toast.error(result.error || 'Login failed')
             setError(result.error || 'Login failed')
         }
 

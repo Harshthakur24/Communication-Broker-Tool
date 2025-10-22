@@ -6,6 +6,7 @@ import { Eye, EyeOff, Mail, Lock, User, Building, AlertCircle, Loader2, CheckCir
 import { Button, Input } from '@/components/ui'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/contexts/AuthContext'
+import toast from 'react-hot-toast'
 
 interface RegisterFormProps {
     onSuccess?: () => void
@@ -34,7 +35,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
 
     const validatePassword = (password: string) => {
         const errors = []
-        if (password.length < 6) errors.push('At least 6 characters')
+        if (password.length < 8) errors.push('At least 8 characters')
         return errors
     }
 
@@ -49,14 +50,14 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
 
         // Validate passwords match
         if (formData.password !== formData.confirmPassword) {
-            setError('Passwords do not match')
+            toast.error('Passwords do not match')
             setIsLoading(false)
             return
         }
 
         // Basic password validation
-        if (formData.password.length < 6) {
-            setError('Password must be at least 6 characters long')
+        if (formData.password.length < 8) {
+            toast.error('Password must be at least 8 characters long')
             setIsLoading(false)
             return
         }
@@ -69,6 +70,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
         })
 
         if (result.success) {
+            toast.success('Registration successful! Please check your email to verify your account.')
             setSuccess('Registration successful! Please check your email to verify your account.')
             setFormData({
                 name: '',
@@ -78,6 +80,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
                 department: '',
             })
         } else {
+            toast.error(result.error || 'Registration failed')
             setError(result.error || 'Registration failed')
         }
 

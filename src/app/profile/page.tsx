@@ -223,15 +223,20 @@ export default function ProfilePage() {
                                     </div>
 
                                     <div>
-                                        <Input
-                                            type="email"
-                                            label="Email Address"
-                                            placeholder="Enter your email"
-                                            value={user.email}
-                                            disabled
-                                            icon={<Mail className="w-4 h-4 text-gray-400" />}
-                                            helperText="Email cannot be changed. Contact support if needed."
-                                        />
+                                        <div className="space-y-1">
+                                            <label className="text-sm font-medium text-gray-700">Email Address</label>
+                                            <div className="relative">
+                                                <Mail className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                                                <Input
+                                                    type="email"
+                                                    placeholder="Enter your email"
+                                                    value={user.email}
+                                                    disabled
+                                                    className="pl-10"
+                                                />
+                                            </div>
+                                            <p className="text-xs text-gray-500">Email cannot be changed. Contact support if needed.</p>
+                                        </div>
                                     </div>
 
                                     <div>

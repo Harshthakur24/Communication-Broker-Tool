@@ -99,7 +99,7 @@ function AuthContent() {
     return (
         <div className="h-screen flex overflow-hidden">
             {/* Left Side - Image Background with Overlays */}
-            <div className="hidden lg:flex lg:w-[45%] relative overflow-hidden">
+            <div className="hidden lg:flex lg:w-[50%] relative overflow-hidden">
                 {/* Background Image */}
                 <div className="absolute inset-0">
                     <img
@@ -216,7 +216,7 @@ function AuthContent() {
             </div>
 
             {/* Right Side - Auth Form */}
-            <div className="w-full lg:w-[55%] flex items-center justify-center p-6 bg-white overflow-hidden h-full">
+            <div className="w-full lg:w-[50%] flex items-center justify-center p-6 bg-white overflow-hidden h-full">
                 <motion.div
                     initial={{ opacity: 0, x: 30 }}
                     animate={{ opacity: 1, x: 0 }}

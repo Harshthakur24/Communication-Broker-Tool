@@ -214,30 +214,111 @@ export default function Dashboard() {
     }
 
     return (
-        <div data-testid="dashboard" className="min-h-screen bg-gradient-to-br from-white via-purple-50 to-white">
+        <div data-testid="dashboard" className="h-screen bg-gradient-to-br from-purple-50/30 via-white to-blue-50/30 flex flex-col overflow-hidden">
             {/* Navigation */}
             <AppNav />
 
-            {/* Main Content Container */}
-            <div className="container mx-auto px-4 py-8 max-w-7xl">
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                    {/* Main Chat Area */}
-                    <div className="lg:col-span-3 flex flex-col">
+            {/* Main Content Container - 3 Column Layout */}
+            <div className="flex-1 container mx-auto px-6 py-4 max-w-[1800px] overflow-hidden">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full">
+                    {/* Left Sidebar - Quick Actions & Stats */}
+                    <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.5 }}
+                        className="lg:col-span-3 flex flex-col h-full"
+                    >
+                        <div className="glass rounded-3xl shadow-lg border border-purple-100/50 p-5 h-full flex flex-col"
+                            style={{ backdropFilter: 'blur(10px)' }}
+                        >
+                            <h3 className="font-bold text-lg mb-4 flex items-center gap-2 text-gray-800 flex-shrink-0">
+                                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg">
+                                    <FileStack className="w-4 h-4 text-white" />
+                                </div>
+                                Quick Access
+                            </h3>
+
+                            {/* Quick Stats */}
+                            <div className="space-y-3 mb-4 flex-shrink-0">
+                                <div className="p-3 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200">
+                                    <div className="flex items-center gap-2.5">
+                                        <div className="w-9 h-9 rounded-lg bg-purple-600 flex items-center justify-center">
+                                            <FileText className="w-4 h-4 text-white" />
+                                        </div>
+                                        <div>
+                                            <p className="text-xl font-bold text-purple-900">{documents.length}</p>
+                                            <p className="text-xs text-purple-700">Documents</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="p-3 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200">
+                                    <div className="flex items-center gap-2.5">
+                                        <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center">
+                                            <MessageSquare className="w-4 h-4 text-white" />
+                                        </div>
+                                        <div>
+                                            <p className="text-xl font-bold text-blue-900">{chatHistory.length}</p>
+                                            <p className="text-xs text-blue-700">Conversations</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="p-3 rounded-xl bg-gradient-to-br from-green-50 to-green-100 border border-green-200">
+                                    <div className="flex items-center gap-2.5">
+                                        <div className="w-9 h-9 rounded-lg bg-green-600 flex items-center justify-center">
+                                            <Bell className="w-4 h-4 text-white" />
+                                        </div>
+                                        <div>
+                                            <p className="text-xl font-bold text-green-900">{integrationEvents.length}</p>
+                                            <p className="text-xs text-green-700">Updates</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Quick Actions */}
+                            <div className="flex-shrink-0 overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
+                                <h4 className="font-semibold text-xs text-gray-700 mb-2 uppercase tracking-wide">Quick Actions</h4>
+                                <div className="space-y-2">
+                                    <button
+                                        onClick={() => router.push('/knowledge-base')}
+                                        className="w-full p-2.5 rounded-xl bg-white hover:bg-purple-50 border border-purple-100 hover:border-purple-300 transition-all text-left flex items-center gap-2.5 group"
+                                    >
+                                        <FileText className="w-4 h-4 text-purple-600 group-hover:scale-110 transition-transform" />
+                                        <span className="text-sm font-medium">Knowledge Base</span>
+                                    </button>
+
+                                    <button
+                                        onClick={() => router.push('/profile')}
+                                        className="w-full p-2.5 rounded-xl bg-white hover:bg-purple-50 border border-purple-100 hover:border-purple-300 transition-all text-left flex items-center gap-2.5 group"
+                                    >
+                                        <User className="w-4 h-4 text-purple-600 group-hover:scale-110 transition-transform" />
+                                        <span className="text-sm font-medium">My Profile</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+
+                    {/* Main Chat Area - Center */}
+                    <div className="lg:col-span-6 flex flex-col h-full">
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.5 }}
-                            className="glass rounded-2xl shadow-xl border border-purple-100/50 flex flex-col h-[calc(100vh-12rem)]"
+                            className="glass rounded-3xl shadow-lg border border-purple-100/50 flex flex-col h-full overflow-hidden"
+                            style={{ backdropFilter: 'blur(10px)' }}
                         >
                             {/* Chat Header */}
-                            <div className="p-6 border-b border-purple-100">
+                            <div className="p-5 border-b border-purple-100 flex-shrink-0 bg-gradient-to-r from-purple-50/50 to-transparent">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
-                                        <Sparkles className="w-6 h-6 text-purple-600" />
+                                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg">
+                                        <Sparkles className="w-6 h-6 text-white" />
                                     </div>
                                     <div>
                                         <h1 className="text-xl font-bold text-gray-900">AI Assistant</h1>
-                                        <p className="text-sm text-gray-500">Ask me anything about your company</p>
+                                        <p className="text-xs text-gray-600">Ask me anything about your company</p>
                                     </div>
                                 </div>
                             </div>
@@ -331,7 +412,7 @@ export default function Dashboard() {
                             </div>
 
                             {/* Input */}
-                            <div className="p-6 border-t border-purple-100">
+                            <div className="p-5 border-t border-purple-100 flex-shrink-0 bg-gradient-to-r from-transparent to-purple-50/30">
                                 <div className="flex gap-3">
                                     <Input
                                         data-testid="chat-input"
@@ -339,14 +420,14 @@ export default function Dashboard() {
                                         onChange={(e) => setInputMessage(e.target.value)}
                                         onKeyPress={handleKeyPress}
                                         placeholder="Ask anything about your company..."
-                                        className="flex-1 rounded-full border-purple-200 focus:border-purple-400"
+                                        className="flex-1 h-11 rounded-2xl border-purple-200 focus:border-purple-400 shadow-sm px-4 text-sm"
                                         disabled={loading}
                                     />
                                     <Button
                                         data-testid="send-message-btn"
                                         onClick={handleSendMessage}
                                         disabled={loading || !inputMessage.trim()}
-                                        className="rounded-full bg-purple-600 hover:bg-purple-700 text-white px-6 shadow-lg shadow-purple-200"
+                                        className="h-11 rounded-2xl bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-6 shadow-lg shadow-purple-200 transition-all"
                                     >
                                         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                                     </Button>
@@ -355,58 +436,80 @@ export default function Dashboard() {
                         </motion.div>
                     </div>
 
-                    {/* Right Sidebar - Insights */}
+                    {/* Right Sidebar - Recent Activity & Info */}
                     <motion.div
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.5, delay: 0.2 }}
-                        className="lg:col-span-1"
+                        className="lg:col-span-3 flex flex-col h-full"
                     >
-                        <div className="glass rounded-2xl shadow-xl border border-purple-100/50 flex flex-col h-[calc(100vh-12rem)]">
-                            <div className="p-4 border-b border-purple-100">
-                                <h3 className="font-semibold flex items-center gap-2">
-                                    <Bell className="w-4 h-4" />
-                                    Recent Activity
-                                </h3>
-                            </div>
+                        <div className="glass rounded-3xl shadow-lg border border-purple-100/50 p-5 h-full flex flex-col"
+                            style={{ backdropFilter: 'blur(10px)' }}
+                        >
+                            <h3 className="font-bold text-lg mb-4 flex items-center gap-2 text-gray-800 flex-shrink-0">
+                                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg">
+                                    <Bell className="w-4 h-4 text-white" />
+                                </div>
+                                Recent Activity
+                            </h3>
 
-                            <div className="flex-1 overflow-y-auto p-4">
-                                <div className="space-y-4">
-                                    {/* Documents */}
-                                    <div>
-                                        <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                                            <FileStack className="w-4 h-4" />
-                                            Recent Documents ({documents.length})
+                            <div className="space-y-5 flex-1 overflow-y-auto pr-1" style={{ scrollbarWidth: 'thin', scrollbarColor: '#9333ea transparent' }}>
+                                {/* Recent Documents */}
+                                <div>
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h4 className="text-sm font-bold text-gray-800 flex items-center gap-2 uppercase tracking-wide">
+                                            <FileText className="w-4 h-4 text-purple-600" />
+                                            Recent Documents
                                         </h4>
-                                        <div className="space-y-2">
-                                            {documents.slice(0, 5).map((doc) => (
-                                                <div key={doc.id} className="p-3 rounded-lg bg-white/50 border border-purple-100">
-                                                    <p className="text-sm font-medium truncate">{doc.title}</p>
-                                                    <p className="text-xs text-gray-500">by {doc.uploadedBy}</p>
-                                                </div>
-                                            ))}
-                                            {documents.length === 0 && (
-                                                <p className="text-sm text-gray-500">No documents yet</p>
-                                            )}
-                                        </div>
+                                        <span className="text-xs font-semibold text-purple-600 bg-purple-100 px-2 py-1 rounded-full">{documents.length}</span>
                                     </div>
-
-                                    <div className="border-t border-purple-100 my-4" />
-
-                                    {/* Integration Events */}
-                                    <div>
-                                        <h4 className="text-sm font-semibold text-gray-700 mb-2">Integration Updates</h4>
-                                        <div className="space-y-2">
-                                            {integrationEvents.slice(0, 5).map((event) => (
-                                                <div key={event.id} className="p-3 rounded-lg bg-white/50 border border-purple-100">
-                                                    <p className="text-sm font-medium">{event.event_type}</p>
-                                                    <p className="text-xs text-gray-500">{event.source}</p>
+                                    <div className="space-y-2">
+                                        {documents.slice(0, 3).map((doc) => (
+                                            <div key={doc.id} className="p-3 rounded-xl bg-white hover:bg-purple-50 border border-purple-100 hover:border-purple-200 transition-all cursor-pointer group">
+                                                <div className="flex items-start gap-2">
+                                                    <FileText className="w-4 h-4 text-purple-500 mt-0.5 group-hover:scale-110 transition-transform" />
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm font-medium truncate text-gray-900">{doc.title}</p>
+                                                        <p className="text-xs text-gray-500">by {doc.uploadedBy}</p>
+                                                    </div>
                                                 </div>
-                                            ))}
-                                            {integrationEvents.length === 0 && (
+                                            </div>
+                                        ))}
+                                        {documents.length === 0 && (
+                                            <div className="text-center py-6">
+                                                <FileText className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                                                <p className="text-sm text-gray-500">No documents yet</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="border-t border-purple-200" />
+
+                                {/* Integration Events */}
+                                <div>
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h4 className="text-sm font-bold text-gray-800 uppercase tracking-wide">Integration Updates</h4>
+                                        <span className="text-xs font-semibold text-purple-600 bg-purple-100 px-2 py-1 rounded-full">{integrationEvents.length}</span>
+                                    </div>
+                                    <div className="space-y-2">
+                                        {integrationEvents.slice(0, 3).map((event) => (
+                                            <div key={event.id} className="p-3 rounded-xl bg-white border border-purple-100">
+                                                <div className="flex items-start gap-2">
+                                                    <div className="w-2 h-2 rounded-full bg-green-500 mt-1.5"></div>
+                                                    <div className="flex-1">
+                                                        <p className="text-sm font-medium text-gray-900">{event.event_type}</p>
+                                                        <p className="text-xs text-gray-500">{event.source}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {integrationEvents.length === 0 && (
+                                            <div className="text-center py-6">
+                                                <Bell className="w-8 h-8 text-gray-300 mx-auto mb-2" />
                                                 <p className="text-sm text-gray-500">No recent events</p>
-                                            )}
-                                        </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
