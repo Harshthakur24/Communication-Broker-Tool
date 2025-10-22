@@ -3,6 +3,9 @@ import { withAuth } from '@/lib/middleware'
 import { prisma } from '@/lib/database'
 import { comparePassword, hashPassword, validatePassword } from '@/lib/auth'
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   return withAuth(request, async (authenticatedRequest) => {
     try {

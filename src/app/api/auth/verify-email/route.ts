@@ -3,6 +3,9 @@ import { prisma } from '@/lib/database'
 import { validateEmailVerificationToken, markEmailVerificationTokenAsUsed } from '@/lib/auth'
 import { sendWelcomeEmail } from '@/lib/email'
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
     const { token } = await request.json()

@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/middleware'
 import { prisma } from '@/lib/database'
 import { 
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
   extractTextFromFile, 
   processDocument, 
   extractMetadataFromFilename,
