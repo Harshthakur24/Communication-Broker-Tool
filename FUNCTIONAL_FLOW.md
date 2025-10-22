@@ -2,6 +2,35 @@
 
 ## User Input to AI Response Flow
 
+### Update Command Flow (Mermaid)
+
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant UI as Web UI/Slack
+  participant API as API Route
+  participant INT as Intent Detector
+  participant CTX as Context Manager
+  participant RTR as Command Router
+  participant J as Jira API
+  participant KB as KB/Vector Index
+  participant AUD as Audit Log
+
+  U->>UI: "Mark this project as in progress"
+  UI->>API: POST /api/chat/messages
+  API->>INT: classify(message)
+  INT-->>API: intent=UPDATE, entities={project, status}
+  API->>CTX: loadSession + user perms
+  CTX-->>API: context
+  API->>RTR: route(intent, context)
+  RTR->>J: updateStatus(project,status)
+  J-->>RTR: 200 OK
+  RTR->>KB: upsert project status + reindex
+  RTR->>AUD: log PROJECT_STATUS_UPDATE
+  RTR-->>API: confirmation
+  API-->>UI: response + provenance
+```
+
 ### 1. User Input Processing
 ```
 User Types: "Mark this project as in progress"
@@ -99,6 +128,22 @@ User Types: "Mark this project as in progress"
 
 ## Query Processing Flow
 
+### Query Flow (Mermaid)
+
+```mermaid
+flowchart TD
+  A[User asks: "Is the new policy live?"] --> B[Intent: QUERY]
+  B --> C[Build query embedding]
+  C --> D{Retriever}
+  D -->|Vector search| E[Vector DB (pgvector/Pinecone)]
+  D -->|Filters| F[RBAC filter by department/access]
+  E --> G[Rank by similarity, recency, authority]
+  G --> H[Assemble context window]
+  H --> I[LLM Generation with grounding]
+  I --> J[Add provenance citations]
+  J --> K[Return concise, professional answer]
+```
+
 ### Example: "Is the new policy live?"
 
 ```
@@ -153,6 +198,30 @@ User Input: "Is the new policy live?"
 ```
 
 ## Event-Driven Update Flow
+
+### Webhook/Events (Mermaid)
+
+```mermaid
+sequenceDiagram
+  participant SRC as Integration (Jira/Notion)
+  participant WB as Webhook Route
+  participant VAL as Signature Validator
+  participant EB as Event Bus
+  participant H as Handler (KB Updater)
+  participant IDX as Indexer (Embeddings)
+  participant N as Notification Dispatcher
+  participant AUD as Audit Log
+
+  SRC->>WB: POST /api/integrations/{src}/webhook
+  WB->>VAL: validate(signature)
+  VAL-->>WB: valid
+  WB->>EB: emit(project.updated)
+  EB->>H: handle(project.updated)
+  H->>IDX: re-chunk + re-embed
+  IDX-->>H: indexed
+  H->>N: notify stakeholders
+  H->>AUD: log change
+```
 
 ### Example: Jira Webhook Received
 

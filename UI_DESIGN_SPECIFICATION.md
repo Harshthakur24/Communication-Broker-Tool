@@ -96,6 +96,37 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
 }
 ```
 
+### Message Tagging, Markdown, and Threading
+
+```typescript
+// src/components/chat/MessageMeta.tsx
+export function MessageMeta({ tags, sources, threadCount }: {
+  tags?: string[];
+  sources?: { title: string; url?: string }[];
+  threadCount?: number;
+}) {
+  return (
+    <div className="flex items-center gap-2 mt-1">
+      {tags?.map(t => (
+        <span key={t} className="text-xs px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
+          {t}
+        </span>
+      ))}
+      {sources && sources.length > 0 && (
+        <button className="text-xs text-gray-500 hover:text-gray-700 underline">
+          {sources.length} sources
+        </button>
+      )}
+      {typeof threadCount === 'number' && (
+        <span className="text-xs text-gray-500">{threadCount} replies</span>
+      )}
+    </div>
+  );
+}
+```
+
+Add provenance chips and markdown rendering to assistant messages; show a compact source popover linking to internal documents (never external by default).
+
 ### Left Sidebar Component
 
 ```typescript
