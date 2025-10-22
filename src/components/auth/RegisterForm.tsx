@@ -103,10 +103,8 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
             className={cn('w-full', className)}
         >
             <div className="text-center mb-8">
-                <div className="w-20 h-20 bg-gradient-to-br from-purple-600 to-purple-700 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-                    <User className="w-10 h-10 text-white" />
-                </div>
-                <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent mb-3">
+
+                <h2 className="text-5xl font-bold bg-gray-900 bg-clip-text text-transparent mb-3">
                     Create Account
                 </h2>
                 <p className="text-gray-600">Join the AI Communication Hub</p>
@@ -134,7 +132,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
                 </motion.div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-3">
                 <Input
                     type="text"
                     name="name"
@@ -143,7 +141,8 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
                     onChange={handleInputChange}
                     required
                     disabled={isLoading}
-                    className="h-12 px-4 bg-white border-gray-200 rounded-xl text-base placeholder:text-gray-400"
+                    className="h-12 px-4 py-7 bg-white border-gray-200 rounded-full text-base placeholder:text-gray-400"
+                    suppressHydrationWarning
                 />
 
                 <Input
@@ -154,7 +153,8 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
                     onChange={handleInputChange}
                     required
                     disabled={isLoading}
-                    className="h-12 px-4 bg-white border-gray-200 rounded-xl text-base placeholder:text-gray-400"
+                    className="h-12 px-4 py-7 bg-white border-gray-200 rounded-full text-base placeholder:text-gray-400"
+                    suppressHydrationWarning
                 />
 
                 <Input
@@ -164,7 +164,8 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
                     value={formData.department}
                     onChange={handleInputChange}
                     disabled={isLoading}
-                    className="h-12 px-4 bg-white border-gray-200 rounded-xl text-base placeholder:text-gray-400"
+                    className="h-12 px-4 py-7 bg-white border-gray-200 rounded-full text-base placeholder:text-gray-400"
+                    suppressHydrationWarning
                 />
 
                 <div className="relative">
@@ -176,7 +177,8 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
                         onChange={handleInputChange}
                         required
                         disabled={isLoading}
-                        className="h-12 px-4 pr-12 bg-white border-gray-200 rounded-xl text-base placeholder:text-gray-400"
+                        className="h-12 px-4 py-7 pr-12 bg-white border-gray-200 rounded-full text-base placeholder:text-gray-400"
+                        suppressHydrationWarning
                     />
                     <button
                         type="button"
@@ -197,7 +199,8 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
                         onChange={handleInputChange}
                         required
                         disabled={isLoading}
-                        className="h-12 px-4 pr-12 bg-white border-gray-200 rounded-xl text-base placeholder:text-gray-400"
+                        className="h-12 px-4 py-7 pr-12 bg-white border-gray-200 rounded-full text-base placeholder:text-gray-400"
+                        suppressHydrationWarning
                     />
                     <button
                         type="button"
@@ -211,7 +214,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
 
                 <Button
                     type="submit"
-                    className="w-full h-12 bg-black hover:bg-gray-800 text-white rounded-xl text-base font-medium mt-6"
+                    className="w-full h-12 bg-black hover:bg-gray-800 text-white rounded-full text-base font-medium mt-4"
                     disabled={isLoading || !formData.name || !formData.email || !formData.password || !formData.confirmPassword}
                 >
                     {isLoading ? (

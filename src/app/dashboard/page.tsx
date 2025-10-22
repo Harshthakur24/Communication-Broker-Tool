@@ -18,12 +18,13 @@ import {
     FileStack,
     Bell
 } from 'lucide-react'
+import { ChatSearch } from '@/components/chat/ChatSearch'
 import { motion } from 'framer-motion'
 
 interface Message {
     role: 'user' | 'assistant'
     content: string
-    sources?: { title: string; content: string }[]
+    sources?: Array<{ title: string; url?: string; content?: string; similarity?: number }>
     created_at: string
 }
 
@@ -61,6 +62,7 @@ export default function Dashboard() {
     const [chatHistory, setChatHistory] = useState<Message[]>([])
     const [documents, setDocuments] = useState<Document[]>([])
     const [integrationEvents, setIntegrationEvents] = useState<IntegrationEvent[]>([])
+    const [expandedSources, setExpandedSources] = useState<Set<number>>(new Set())
     const messagesEndRef = useRef<HTMLDivElement>(null)
     const sessionIdRef = useRef(Math.random().toString(36).substring(7))
 
@@ -91,7 +93,13 @@ export default function Dashboard() {
             const response = await fetch('/api/chat/messages')
             if (response.ok) {
                 const data = await response.json()
-                setChatHistory(data.messages || [])
+                const mapped: Message[] = (data.messages || []).map((m: any) => ({
+                    role: m.type === 'user' ? 'user' : 'assistant',
+                    content: typeof m.content === 'string' ? m.content : JSON.stringify(m.content),
+                    sources: m.sources,
+                    created_at: new Date(m.timestamp).toISOString(),
+                }))
+                setChatHistory(mapped)
             }
         } catch (error) {
             console.error('Failed to load chat history:', error)
@@ -158,11 +166,12 @@ export default function Dashboard() {
 
             if (response.ok) {
                 const data = await response.json()
+                const serverMsg = data.message
                 const assistantMessage: Message = {
                     role: 'assistant',
-                    content: data.response || data.message,
-                    sources: data.sources,
-                    created_at: new Date().toISOString()
+                    content: serverMsg?.content ?? data.response ?? '',
+                    sources: serverMsg?.sources ?? data.sources,
+                    created_at: new Date(serverMsg?.timestamp || Date.now()).toISOString(),
                 }
 
                 setMessages(prev => [...prev, assistantMessage])
@@ -233,57 +242,71 @@ export default function Dashboard() {
                         >
                             <h3 className="font-bold text-lg mb-4 flex items-center gap-2 text-gray-800 flex-shrink-0">
                                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg">
-                                    <FileStack className="w-4 h-4 text-white" />
+                                    <MessageSquare className="w-4 h-4 text-white" />
                                 </div>
-                                Quick Access
+                                Recent Chats
                             </h3>
 
-                            {/* Quick Stats */}
-                            <div className="space-y-3 mb-4 flex-shrink-0">
-                                <div className="p-3 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200">
-                                    <div className="flex items-center gap-2.5">
-                                        <div className="w-9 h-9 rounded-lg bg-purple-600 flex items-center justify-center">
-                                            <FileText className="w-4 h-4 text-white" />
-                                        </div>
-                                        <div>
-                                            <p className="text-xl font-bold text-purple-900">{documents.length}</p>
-                                            <p className="text-xs text-purple-700">Documents</p>
-                                        </div>
-                                    </div>
-                                </div>
+                            {/* Search Functionality */}
+                            <div className="mb-4 flex-shrink-0">
+                                <ChatSearch
+                                    onResultSelect={(result) => {
+                                        // Add search result as context to the chat
+                                        setInputMessage((prev: string) => prev + `\n\n[Found: ${result.title}]\n${result.snippet}`)
+                                    }}
+                                    onSearchQuery={(query) => {
+                                        // Optional: Handle search query changes
+                                        console.log('Search query:', query)
+                                    }}
+                                />
+                            </div>
 
-                                <div className="p-3 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200">
-                                    <div className="flex items-center gap-2.5">
-                                        <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center">
-                                            <MessageSquare className="w-4 h-4 text-white" />
+                            {/* Recent Chat History */}
+                            <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
+                                <h4 className="font-semibold text-xs text-gray-700 mb-3 uppercase tracking-wide">Recent Conversations</h4>
+                                <div className="space-y-2">
+                                    {chatHistory.length > 0 ? (
+                                        chatHistory.slice(0, 5).map((msg, idx) => (
+                                            <div
+                                                key={idx}
+                                                onClick={() => {
+                                                    // Load this conversation
+                                                    setInputMessage(msg.content)
+                                                }}
+                                                className="p-3 rounded-xl bg-white hover:bg-purple-50 border border-purple-100 hover:border-purple-300 transition-all cursor-pointer group"
+                                            >
+                                                <div className="flex items-start gap-2">
+                                                    <div className="w-6 h-6 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0">
+                                                        <MessageSquare className="w-3 h-3 text-purple-600" />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm font-medium text-gray-900 line-clamp-2 group-hover:text-purple-700">
+                                                            {msg.content.length > 50 ? `${msg.content.substring(0, 50)}...` : msg.content}
+                                                        </p>
+                                                        <p className="text-xs text-gray-500 mt-1">
+                                                            {new Date().toLocaleDateString()}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="text-center py-8">
+                                            <MessageSquare className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                                            <p className="text-sm text-gray-500">No recent conversations</p>
+                                            <p className="text-xs text-gray-400 mt-1">Start chatting to see history here</p>
                                         </div>
-                                        <div>
-                                            <p className="text-xl font-bold text-blue-900">{chatHistory.length}</p>
-                                            <p className="text-xs text-blue-700">Conversations</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="p-3 rounded-xl bg-gradient-to-br from-green-50 to-green-100 border border-green-200">
-                                    <div className="flex items-center gap-2.5">
-                                        <div className="w-9 h-9 rounded-lg bg-green-600 flex items-center justify-center">
-                                            <Bell className="w-4 h-4 text-white" />
-                                        </div>
-                                        <div>
-                                            <p className="text-xl font-bold text-green-900">{integrationEvents.length}</p>
-                                            <p className="text-xs text-green-700">Updates</p>
-                                        </div>
-                                    </div>
+                                    )}
                                 </div>
                             </div>
 
                             {/* Quick Actions */}
-                            <div className="flex-shrink-0 overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
+                            <div className="flex-shrink-0 mt-4 pt-4 border-t border-gray-200">
                                 <h4 className="font-semibold text-xs text-gray-700 mb-2 uppercase tracking-wide">Quick Actions</h4>
                                 <div className="space-y-2">
                                     <button
                                         onClick={() => router.push('/knowledge-base')}
-                                        className="w-full p-2.5 rounded-xl bg-white hover:bg-purple-50 border border-purple-100 hover:border-purple-300 transition-all text-left flex items-center gap-2.5 group"
+                                        className="w-full p-2.5 rounded-xl bg-white hover:bg-purple-50 border border-purple-100 hover:border-purple-300 transition-all text-left flex items-center gap-2.5 group cursor-pointer"
                                     >
                                         <FileText className="w-4 h-4 text-purple-600 group-hover:scale-110 transition-transform" />
                                         <span className="text-sm font-medium">Knowledge Base</span>
@@ -291,7 +314,7 @@ export default function Dashboard() {
 
                                     <button
                                         onClick={() => router.push('/profile')}
-                                        className="w-full p-2.5 rounded-xl bg-white hover:bg-purple-50 border border-purple-100 hover:border-purple-300 transition-all text-left flex items-center gap-2.5 group"
+                                        className="w-full p-2.5 rounded-xl bg-white hover:bg-purple-50 border border-purple-100 hover:border-purple-300 transition-all text-left flex items-center gap-2.5 group cursor-pointer"
                                     >
                                         <User className="w-4 h-4 text-purple-600 group-hover:scale-110 transition-transform" />
                                         <span className="text-sm font-medium">My Profile</span>
@@ -324,7 +347,7 @@ export default function Dashboard() {
                             </div>
 
                             {/* Messages */}
-                            <div className="flex-1 overflow-y-auto p-6">
+                            <div className="flex-1 overflow-y-auto p-6 chat-container min-h-0" style={{ maxHeight: 'calc(100vh - 300px)' }}>
                                 <div className="space-y-6">
                                     {messages.length === 0 && chatHistory.length === 0 && (
                                         <motion.div
@@ -381,11 +404,39 @@ export default function Dashboard() {
                                                 {msg.sources && msg.sources.length > 0 && (
                                                     <div className="mt-3 pt-3 border-t border-purple-100">
                                                         <p className="text-xs text-gray-500 mb-2">Sources:</p>
-                                                        {msg.sources.map((source, i) => (
+                                                        {msg.sources.slice(0, 3).map((source, i) => (
                                                             <div key={i} className="text-xs text-purple-600">
                                                                 • {source.title}
                                                             </div>
                                                         ))}
+                                                        {msg.sources.length > 3 && (
+                                                            <button
+                                                                onClick={() => {
+                                                                    const newExpanded = new Set(expandedSources)
+                                                                    if (newExpanded.has(idx)) {
+                                                                        newExpanded.delete(idx)
+                                                                    } else {
+                                                                        newExpanded.add(idx)
+                                                                    }
+                                                                    setExpandedSources(newExpanded)
+                                                                }}
+                                                                className="text-xs text-purple-500 hover:text-purple-600 underline mt-1"
+                                                            >
+                                                                {expandedSources.has(idx)
+                                                                    ? 'Hide sources'
+                                                                    : `See all ${msg.sources.length} sources`
+                                                                }
+                                                            </button>
+                                                        )}
+                                                        {msg.sources.length > 3 && expandedSources.has(idx) && (
+                                                            <div className="space-y-1 mt-2">
+                                                                {msg.sources.slice(3).map((source, i) => (
+                                                                    <div key={i + 3} className="text-xs text-purple-600">
+                                                                        • {source.title}
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 )}
                                             </div>

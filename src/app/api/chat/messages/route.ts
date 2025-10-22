@@ -3,6 +3,7 @@ import { withAuth } from '@/lib/middleware'
 import { prisma } from '@/lib/database'
 import { getRAGContext } from '@/lib/ragService'
 import { generateRAGResponse, generateSimpleResponse } from '@/lib/ai'
+import { processAIResponse } from '@/lib/responseProcessor'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
@@ -136,7 +137,7 @@ export async function POST(request: NextRequest) {
       let sources: any[] = []
 
       try {
-        ragContext = await getRAGContext(message, 5)
+        ragContext = await getRAGContext(message, 3)
         
         if (ragContext.documents.length > 0) {
           // Generate response with RAG
@@ -148,11 +149,26 @@ export async function POST(request: NextRequest) {
               source: doc.source,
             }))
           )
-          sources = ragContext.documents.map(doc => ({
-            title: doc.title,
-            url: `/documents/${doc.id}`,
-            similarity: doc.similarity,
-          }))
+          // Deduplicate sources by document ID to avoid showing same document multiple times
+          console.log('Raw RAG documents:', ragContext.documents.length)
+          console.log('Document IDs:', ragContext.documents.map(doc => doc.id))
+          
+          const uniqueSources = new Map()
+          ragContext.documents.forEach(doc => {
+            console.log('Processing document:', doc.id, doc.title)
+            if (!uniqueSources.has(doc.id)) {
+              uniqueSources.set(doc.id, {
+                title: doc.title,
+                url: `/documents/${doc.id}`,
+                similarity: doc.similarity,
+              })
+              console.log('Added unique source:', doc.title)
+            } else {
+              console.log('Skipping duplicate:', doc.title)
+            }
+          })
+          sources = Array.from(uniqueSources.values())
+          console.log('Final unique sources:', sources.length, sources.map(s => s.title))
         } else {
           // Generate simple response when no relevant documents found
           aiResponse = await generateSimpleResponse(message)
@@ -163,12 +179,15 @@ export async function POST(request: NextRequest) {
         aiResponse = await generateSimpleResponse(message)
       }
 
+      // Process AI response to make it more human-like and professional
+      const processedResponse = processAIResponse(aiResponse)
+
       // Save AI response
       const assistantMessage = await prisma.chatMessage.create({
         data: {
           sessionId: chatSession.id,
           type: 'assistant',
-          content: aiResponse,
+          content: processedResponse,
           sources: sources.length > 0 ? JSON.stringify(sources) : undefined,
           metadata: ragContext ? {
             totalResults: ragContext.totalResults,
@@ -187,7 +206,7 @@ export async function POST(request: NextRequest) {
         message: {
           id: assistantMessage.id,
           type: 'assistant',
-          content: aiResponse,
+          content: processedResponse,
           timestamp: assistantMessage.createdAt,
           sources,
           metadata: assistantMessage.metadata,

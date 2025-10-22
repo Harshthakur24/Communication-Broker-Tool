@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database'
-import { comparePassword, createSession, generateToken } from '@/lib/auth'
+import { comparePassword, generateToken } from '@/lib/auth'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
@@ -37,6 +37,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Check if email is verified
+    if (!user.isEmailVerified) {
+      return NextResponse.json(
+        { error: 'Please verify your email address before logging in. Check your email for a verification link.' },
+        { status: 403 }
+      )
+    }
+
     // Verify password
     const isPasswordValid = await comparePassword(password, user.password)
     if (!isPasswordValid) {
@@ -52,9 +60,6 @@ export async function POST(request: NextRequest) {
       data: { lastLogin: new Date() },
     })
 
-    // Create session
-    const sessionToken = await createSession(user.id)
-
     // Generate JWT token
     const jwtToken = generateToken({
       userId: user.id,
@@ -62,8 +67,8 @@ export async function POST(request: NextRequest) {
       role: user.role,
     })
 
-    // Set HTTP-only cookie for session
-    const response = NextResponse.json(
+    // Return JWT token in response
+    return NextResponse.json(
       {
         message: 'Login successful',
         user: {
@@ -72,24 +77,17 @@ export async function POST(request: NextRequest) {
           email: user.email,
           department: user.department,
           role: user.role,
-          isEmailVerified: user.isEmailVerified,
           avatar: user.avatar,
+          isActive: user.isActive,
+          isEmailVerified: user.isEmailVerified,
+          lastLogin: user.lastLogin,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
         },
         token: jwtToken,
       },
       { status: 200 }
     )
-
-    // Set session cookie
-    response.cookies.set('session', sessionToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60, // 7 days
-      path: '/',
-    })
-
-    return response
   } catch (error) {
     console.error('Login error:', error)
     return NextResponse.json(

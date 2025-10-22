@@ -1,54 +1,61 @@
-import OpenAI from 'openai'
+// Gemini-based LLM utilities
+import { GoogleGenAI } from "@google/genai"
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || 'sk-placeholder',
-})
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || ''
+const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY })
 
-export interface EmbeddingResponse {
-  embedding: number[]
-  usage: {
-    prompt_tokens: number
-    total_tokens: number
-  }
-}
-
-export interface ChatCompletionResponse {
-  content: string
-  usage: {
-    prompt_tokens: number
-    completion_tokens: number
-    total_tokens: number
-  }
-}
-
-// Generate embeddings for text
+// Generate embeddings for text (single)
 export async function generateEmbedding(text: string): Promise<number[]> {
-  try {
-    const response = await openai.embeddings.create({
-      model: 'text-embedding-3-small',
-      input: text,
-    })
-    
-    return response.data[0].embedding
-  } catch (error) {
-    console.error('Error generating embedding:', error)
-    throw new Error('Failed to generate embedding')
-  }
+  const [embedding] = await generateEmbeddings([text])
+  return embedding
 }
 
-// Generate embeddings for multiple texts
+// Generate embeddings for multiple texts using Gemini text-embedding-004
 export async function generateEmbeddings(texts: string[]): Promise<number[][]> {
-  try {
-    const response = await openai.embeddings.create({
-      model: 'text-embedding-3-small',
-      input: texts,
-    })
-    
-    return response.data.map(item => item.embedding)
-  } catch (error) {
-    console.error('Error generating embeddings:', error)
-    throw new Error('Failed to generate embeddings')
+  if (!GEMINI_API_KEY) {
+    throw new Error('GEMINI_API_KEY is not set')
   }
+
+  const model = 'text-embedding-004'
+  
+  // Process texts in batches of 100 (Gemini limit)
+  const batchSize = 100
+  const allEmbeddings: number[][] = []
+  
+  for (let i = 0; i < texts.length; i += batchSize) {
+    const batch = texts.slice(i, i + batchSize)
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:batchEmbedContents?key=${GEMINI_API_KEY}`
+
+    const body = {
+      requests: batch.map((t) => ({
+        model: `models/${model}`,
+        content: { parts: [{ text: t }] },
+      })),
+    }
+
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+
+      if (!res.ok) {
+        const errTxt = await res.text()
+        throw new Error(`Gemini embeddings error: ${res.status} ${errTxt}`)
+      }
+
+      const json = await res.json() as { embeddings: Array<{ values: number[] }> }
+      const batchEmbeddings = (json.embeddings || []).map((e) => e.values)
+      allEmbeddings.push(...batchEmbeddings)
+    } catch (error) {
+      console.error(`Error generating embeddings for batch ${i}-${i + batchSize} (Gemini):`, error)
+      // Add empty embeddings for failed batch
+      allEmbeddings.push(...batch.map(() => []))
+    }
+  }
+  
+  return allEmbeddings
 }
 
 // Calculate cosine similarity between two vectors
@@ -79,69 +86,51 @@ export async function generateRAGResponse(
     source: string
   }>
 ): Promise<string> {
+  if (!GEMINI_API_KEY) {
+    throw new Error('GEMINI_API_KEY is not set')
+  }
+
   try {
     const contextText = contextDocuments
       .map(doc => `Title: ${doc.title}\nContent: ${doc.content}\nSource: ${doc.source}`)
       .join('\n\n---\n\n')
-    
-    const systemPrompt = `You are an AI assistant for a company's internal communication hub. You have access to the company's knowledge base and should provide accurate, helpful responses based on the available information.
 
-Guidelines:
-1. Always base your responses on the provided context documents
-2. If the information is not available in the context, clearly state that
-3. Be concise but comprehensive
-4. Cite sources when referencing specific documents
-5. Maintain a professional and helpful tone
-6. If asked about company policies, procedures, or information not in the context, suggest contacting the relevant department
+    const systemInstruction = `You are a knowledgeable colleague helping with company information. You have access to our internal documents and should provide helpful, accurate responses.\n\nGuidelines:\n1) Respond naturally and professionally, like a helpful team member\n2) Base responses on the provided documents; if information isn't available, say so directly\n3) Be confident and direct in your responses\n4) Avoid AI-like disclaimers or overly formal language\n5) Use "our company" or "our team" when referring to the organization\n6) Keep responses conversational but professional\n\nContext Documents:\n${contextText}`
 
-Context Documents:
-${contextText}`
+    const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash'
+    const prompt = systemInstruction + '\n\n' + userMessage
 
-    const response = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
-      messages: [
-        {
-          role: 'system',
-          content: systemPrompt,
-        },
-        {
-          role: 'user',
-          content: userMessage,
-        },
-      ],
-      max_tokens: 1000,
-      temperature: 0.7,
+    const response = await ai.models.generateContent({
+      model,
+      contents: prompt,
     })
-    
-    return response.choices[0].message.content || 'I apologize, but I could not generate a response.'
+
+    return response.text || 'I apologize, but I could not generate a response.'
   } catch (error) {
-    console.error('Error generating RAG response:', error)
+    console.error('Error generating RAG response (Gemini):', error)
     throw new Error('Failed to generate AI response')
   }
 }
 
 // Generate a simple AI response without RAG (fallback)
 export async function generateSimpleResponse(userMessage: string): Promise<string> {
+  if (!GEMINI_API_KEY) {
+    return 'I need to check our system configuration. Please contact IT support.'
+  }
+
   try {
-    const response = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are a helpful AI assistant for a company\'s internal communication hub. Provide helpful and professional responses.',
-        },
-        {
-          role: 'user',
-          content: userMessage,
-        },
-      ],
-      max_tokens: 500,
-      temperature: 0.7,
-    })
+    const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash'
     
-    return response.choices[0].message.content || 'I apologize, but I could not generate a response.'
+    const systemPrompt = `You are a helpful colleague at our company. Respond naturally and professionally. Avoid AI-like language or disclaimers. Be direct and confident in your responses.`
+
+    const response = await ai.models.generateContent({
+      model,
+      contents: `${systemPrompt}\n\nUser: ${userMessage}`,
+    })
+
+    return response.text || 'I don\'t have that information available right now.'
   } catch (error) {
-    console.error('Error generating simple response:', error)
-    return 'I apologize, but I\'m currently unable to process your request. Please try again later.'
+    console.error('Error generating simple response (Gemini):', error)
+    return 'I\'m having trouble accessing our systems right now. Please try again in a moment.'
   }
 }

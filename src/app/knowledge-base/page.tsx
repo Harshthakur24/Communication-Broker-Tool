@@ -7,6 +7,7 @@ import { AppNav } from '@/components/layout/AppNav'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { LoadingSpinner } from '@/components/ui/loading'
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
 import {
     FileText,
     Upload,
@@ -37,6 +38,9 @@ export default function KnowledgeBasePage() {
     const [title, setTitle] = useState('')
     const [tags, setTags] = useState('')
     const [uploading, setUploading] = useState(false)
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+    const [documentToDelete, setDocumentToDelete] = useState<{ id: string; title: string } | null>(null)
+    const [deleting, setDeleting] = useState(false)
 
     useEffect(() => {
         if (!authLoading && !user) {
@@ -109,16 +113,23 @@ export default function KnowledgeBasePage() {
         }
     }
 
-    const handleDelete = async (documentId: string) => {
-        if (!window.confirm('Are you sure you want to delete this document?')) return
+    const handleDelete = (documentId: string, documentTitle: string) => {
+        setDocumentToDelete({ id: documentId, title: documentTitle })
+        setDeleteDialogOpen(true)
+    }
 
+    const confirmDelete = async () => {
+        if (!documentToDelete) return
+
+        setDeleting(true)
         try {
-            const response = await fetch(`/api/documents/${documentId}`, {
+            const response = await fetch(`/api/documents/${documentToDelete.id}`, {
                 method: 'DELETE'
             })
 
             if (response.ok) {
-                alert('Document deleted')
+                // Show success message
+                alert('Document deleted successfully')
                 loadDocuments()
             } else {
                 alert('Failed to delete document')
@@ -126,7 +137,16 @@ export default function KnowledgeBasePage() {
         } catch (error) {
             console.error('Delete failed:', error)
             alert('Failed to delete document')
+        } finally {
+            setDeleting(false)
+            setDeleteDialogOpen(false)
+            setDocumentToDelete(null)
         }
+    }
+
+    const cancelDelete = () => {
+        setDeleteDialogOpen(false)
+        setDocumentToDelete(null)
     }
 
     if (authLoading) {
@@ -221,7 +241,7 @@ export default function KnowledgeBasePage() {
                                             data-testid={`delete-doc-${doc.id}-btn`}
                                             variant="ghost"
                                             size="sm"
-                                            onClick={() => handleDelete(doc.id)}
+                                            onClick={() => handleDelete(doc.id, doc.title)}
                                             className="text-red-600 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity"
                                         >
                                             <Trash2 className="w-4 h-4" />
@@ -229,7 +249,7 @@ export default function KnowledgeBasePage() {
                                     </div>
                                     <h3 className="font-bold text-lg mb-2 truncate text-gray-900">{doc.title}</h3>
                                     <p className="text-sm text-gray-600 mb-3 font-medium">
-                                        {doc.fileType.toUpperCase()}
+                                        {doc.fileType?.toUpperCase() || 'Unknown'}
                                     </p>
                                     {doc.tags && doc.tags.length > 0 && (
                                         <div className="flex flex-wrap gap-2 mb-4">
@@ -354,6 +374,21 @@ export default function KnowledgeBasePage() {
                     </motion.div>
                 </motion.div>
             )}
+
+            {/* Delete Confirmation Dialog */}
+            <ConfirmationDialog
+                open={deleteDialogOpen}
+                onOpenChange={setDeleteDialogOpen}
+                title="Delete Knowledge Base Document"
+                description="This action cannot be undone. This will permanently delete the document and all its associated data."
+                confirmText="Type the document name to confirm deletion"
+                onConfirm={confirmDelete}
+                onCancel={cancelDelete}
+                itemName={documentToDelete?.title || ''}
+                confirmButtonText="Delete Document"
+                cancelButtonText="Cancel"
+                isLoading={deleting}
+            />
         </div>
     )
 }

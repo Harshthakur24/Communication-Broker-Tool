@@ -147,7 +147,7 @@ export default function ProfilePage() {
                                 <button
                                     onClick={() => setActiveTab('profile')}
                                     className={cn(
-                                        'w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors',
+                                        'w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors cursor-pointer',
                                         activeTab === 'profile'
                                             ? 'bg-purple-100 text-purple-700'
                                             : 'text-gray-600 hover:bg-gray-100'
@@ -159,7 +159,7 @@ export default function ProfilePage() {
                                 <button
                                     onClick={() => setActiveTab('security')}
                                     className={cn(
-                                        'w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors',
+                                        'w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors cursor-pointer',
                                         activeTab === 'security'
                                             ? 'bg-purple-100 text-purple-700'
                                             : 'text-gray-600 hover:bg-gray-100'

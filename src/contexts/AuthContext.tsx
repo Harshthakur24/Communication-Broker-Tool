@@ -52,8 +52,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const checkAuthStatus = async () => {
         try {
+            const token = localStorage.getItem('auth_token')
+            if (!token) {
+                setUser(null)
+                setLoading(false)
+                return
+            }
+
             const response = await fetch('/api/auth/me', {
-                credentials: 'include',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
             })
 
             if (response.ok) {
@@ -61,10 +70,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setUser(data.user)
             } else {
                 setUser(null)
+                localStorage.removeItem('auth_token')
             }
         } catch (error) {
             console.error('Auth check failed:', error)
             setUser(null)
+            localStorage.removeItem('auth_token')
         } finally {
             setLoading(false)
         }
@@ -77,7 +88,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                credentials: 'include',
                 body: JSON.stringify({ email, password }),
             })
 
@@ -85,7 +95,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             if (response.ok) {
                 setUser(data.user)
-                // Store token in localStorage for client-side use
+                // Store JWT token in localStorage
                 if (data.token) {
                     localStorage.setItem('auth_token', data.token)
                 }
@@ -100,10 +110,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const logout = async () => {
         try {
-            await fetch('/api/auth/logout', {
-                method: 'POST',
-                credentials: 'include',
-            })
+            const token = localStorage.getItem('auth_token')
+            if (token) {
+                await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    },
+                })
+            }
         } catch (error) {
             console.error('Logout error:', error)
         } finally {
@@ -136,12 +151,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const updateProfile = async (data: Partial<User>) => {
         try {
+            const token = localStorage.getItem('auth_token')
             const response = await fetch('/api/users/profile', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
                 },
-                credentials: 'include',
                 body: JSON.stringify(data),
             })
 
@@ -160,12 +176,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const changePassword = async (currentPassword: string, newPassword: string) => {
         try {
+            const token = localStorage.getItem('auth_token')
             const response = await fetch('/api/users/change-password', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
                 },
-                credentials: 'include',
                 body: JSON.stringify({ currentPassword, newPassword }),
             })
 

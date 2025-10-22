@@ -85,15 +85,23 @@ export const DocumentUpload: React.FC<DocumentUploadProps> = ({
 
     const addFiles = (newFiles: File[]) => {
         const validFiles = newFiles.filter(file => {
-            const validTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain', 'text/markdown']
-            const validExtensions = ['.pdf', '.docx', '.txt', '.md']
+            const validTypes = [
+                'application/pdf',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'application/msword',
+                'application/rtf',
+                'application/vnd.oasis.opendocument.text',
+                'text/plain',
+                'text/markdown'
+            ]
+            const validExtensions = ['.pdf', '.docx', '.doc', '.rtf', '.odt', '.txt', '.md']
             const extension = '.' + file.name.split('.').pop()?.toLowerCase()
 
             return validTypes.includes(file.type) || validExtensions.includes(extension)
         })
 
         if (validFiles.length !== newFiles.length) {
-            showToast('Some files were skipped. Only PDF, DOCX, TXT, and MD files are supported.', 'warning')
+            showToast('Some files were skipped. Supported: PDF, DOCX, DOC, RTF, ODT, TXT, MD.', 'warning')
         }
 
         const uploadedFiles: UploadedFile[] = validFiles.map(file => ({

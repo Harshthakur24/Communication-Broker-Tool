@@ -29,10 +29,10 @@ export async function POST(request: NextRequest) {
         )
       }
       
-      // Validate file type
+      // Validate file type (expanded support)
       if (!validateFileType(file.name, file.type)) {
         return NextResponse.json(
-          { error: 'Invalid file type. Supported types: PDF, DOCX, TXT, MD' },
+          { error: 'Invalid file type. Supported types: PDF, DOCX, DOC, RTF, ODT, TXT, MD' },
           { status: 400 }
         )
       }

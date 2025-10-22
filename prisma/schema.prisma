@@ -22,54 +22,15 @@ model User {
   isEmailVerified          Boolean   @default(false)
   emailVerificationToken   String?
   emailVerificationExpires DateTime?
-  passwordResetToken       String?
-  passwordResetExpires     DateTime?
   lastLogin                DateTime?
   createdAt                DateTime  @default(now())
   updatedAt                DateTime  @updatedAt
 
   // Relations
-  sessions     Session[]
   documents    Document[]
   chatSessions ChatSession[]
 
   @@map("users")
-}
-
-model Session {
-  id        String   @id @default(cuid())
-  userId    String
-  token     String   @unique
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("sessions")
-}
-
-model PasswordReset {
-  id        String   @id @default(cuid())
-  email     String
-  token     String   @unique
-  expiresAt DateTime
-  used      Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  @@map("password_resets")
-}
-
-model EmailVerification {
-  id        String   @id @default(cuid())
-  email     String
-  token     String   @unique
-  expiresAt DateTime
-  used      Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  @@map("email_verifications")
 }
 
 model Document {

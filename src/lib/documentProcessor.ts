@@ -1,5 +1,3 @@
-const pdf = require('pdf-parse')
-import mammoth from 'mammoth'
 import { generateEmbeddings } from './ai'
 
 export interface ProcessedDocument {
@@ -24,12 +22,90 @@ export async function extractTextFromFile(
   try {
     switch (extension) {
       case 'pdf':
-        const pdfData = await pdf(buffer)
-        return pdfData.text
+        try {
+          // Try different import patterns for pdf-parse
+          let pdfFn
+          try {
+            // Method 1: Direct import
+            const pdfParse = await import('pdf-parse')
+            
+            if (typeof pdfParse === 'function') {
+              pdfFn = pdfParse
+            } else if ((pdfParse as any).default && typeof (pdfParse as any).default === 'function') {
+              pdfFn = (pdfParse as any).default
+            } else if ((pdfParse as any).PDFParse && typeof (pdfParse as any).PDFParse === 'function') {
+              pdfFn = (pdfParse as any).PDFParse
+            } else if ((pdfParse as any).pdf && typeof (pdfParse as any).pdf === 'function') {
+              pdfFn = (pdfParse as any).pdf
+            } else {
+              throw new Error('PDF parser function not found in module')
+            }
+          } catch (importError) {
+            console.warn('First import attempt failed:', importError)
+            // Method 2: Try require syntax
+            try {
+              const pdfParse = require('pdf-parse')
+              if (typeof pdfParse === 'function') {
+                pdfFn = pdfParse
+              } else if (pdfParse.default && typeof pdfParse.default === 'function') {
+                pdfFn = pdfParse.default
+              } else if (pdfParse.PDFParse && typeof pdfParse.PDFParse === 'function') {
+                pdfFn = pdfParse.PDFParse
+              } else {
+                throw new Error('PDF parser not available via require')
+              }
+            } catch (requireError) {
+              console.warn('Require attempt also failed:', requireError)
+              throw new Error('PDF parser not available')
+            }
+          }
+          
+          const pdfData = await pdfFn(buffer)
+          // Clean the text to remove null bytes and invalid UTF-8 sequences
+          const cleanText = pdfData.text.replace(/\0/g, '').replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
+          return cleanText
+        } catch (e) {
+          console.warn('PDF extraction via pdf-parse failed, falling back to plain text:', e)
+          // For PDF files, try to extract any readable text from the buffer
+          // This is a best-effort approach for corrupted or complex PDFs
+          try {
+            const textContent = buffer.toString('utf-8', 0, Math.min(buffer.length, 10000)) // First 10KB
+            const cleanText = textContent
+              .replace(/\0/g, '') // Remove null bytes
+              .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // Remove control characters
+              .replace(/[^\x20-\x7E\n\r\t]/g, '') // Keep only printable ASCII and common whitespace
+              .trim()
+            
+            if (cleanText.length > 50) { // If we found substantial text
+              return cleanText
+            }
+          } catch (fallbackError) {
+            console.warn('Fallback text extraction also failed:', fallbackError)
+          }
+          
+          // Ultimate fallback - return a generic message
+          return 'PDF content could not be extracted. The file was uploaded successfully but text extraction failed.'
+        }
         
       case 'docx':
-        const docxResult = await mammoth.extractRawText({ buffer })
-        return docxResult.value
+        try {
+          const mammothModule = await import('mammoth')
+          // Some bundlers expose default, others namespace
+          const mammoth = (mammothModule as any).default ?? mammothModule
+          const docxResult = await (mammoth as any).extractRawText({ buffer })
+          if (docxResult?.value && docxResult.value.trim().length > 0) {
+            return docxResult.value
+          }
+        } catch (e) {
+          console.warn('DOCX extraction via mammoth failed, falling back to plain text:', e)
+        }
+        // Fallback: attempt UTF-8; if binary, this will at least avoid hard failure
+        return buffer.toString('utf-8')
+      case 'doc':
+      case 'rtf':
+      case 'odt':
+        // Best-effort fallback for lesser-supported formats
+        return buffer.toString('utf-8')
         
       case 'txt':
       case 'md':
@@ -52,6 +128,11 @@ export function splitTextIntoChunks(
   chunkSize: number = 1000,
   overlap: number = 200
 ): string[] {
+  // For small documents (less than 1.5KB), use a single chunk
+  if (text.length < 1500) {
+    return [text]
+  }
+  
   const chunks: string[] = []
   let start = 0
   
@@ -80,6 +161,14 @@ export function splitTextIntoChunks(
   return chunks
 }
 
+// Clean text content to remove null bytes and invalid UTF-8 sequences
+function cleanTextContent(text: string): string {
+  return text
+    .replace(/\0/g, '') // Remove null bytes
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // Remove control characters
+    .trim()
+}
+
 // Process document and create chunks with embeddings
 export async function processDocument(
   title: string,
@@ -89,18 +178,28 @@ export async function processDocument(
   tags?: string[]
 ): Promise<ProcessedDocument> {
   try {
-    // Split content into chunks
-    const textChunks = splitTextIntoChunks(content)
+    // Clean the content before processing
+    const cleanContent = cleanTextContent(content)
     
-    // Generate embeddings for each chunk
-    const embeddings = await generateEmbeddings(textChunks)
+    // Split content into chunks
+    const textChunks = splitTextIntoChunks(cleanContent)
+    
+    // Generate embeddings for each chunk (graceful fallback if it fails)
+    let embeddings: number[][] = []
+    try {
+      embeddings = await generateEmbeddings(textChunks)
+    } catch (embeddingError) {
+      console.warn('Embedding generation failed, proceeding without embeddings:', embeddingError)
+      // Create empty embeddings for each chunk so downstream logic can continue
+      embeddings = Array.from({ length: textChunks.length }, () => [])
+    }
     
     // Create processed chunks
     const chunks = textChunks.map((chunk, index) => ({
       content: chunk,
       chunkIndex: index,
       metadata: {
-        embedding: embeddings[index],
+        embedding: embeddings[index] && embeddings[index].length ? embeddings[index] : undefined,
         category,
         tags,
         type,
@@ -109,7 +208,7 @@ export async function processDocument(
     
     return {
       title,
-      content,
+      content: cleanContent,
       type,
       chunks,
     }
@@ -168,10 +267,13 @@ export function extractMetadataFromFilename(filename: string): {
 
 // Validate file type
 export function validateFileType(filename: string, mimeType: string): boolean {
-  const allowedExtensions = ['pdf', 'docx', 'txt', 'md', 'markdown']
+  const allowedExtensions = ['pdf', 'docx', 'doc', 'rtf', 'odt', 'txt', 'md', 'markdown']
   const allowedMimeTypes = [
     'application/pdf',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/msword',
+    'application/rtf',
+    'application/vnd.oasis.opendocument.text',
     'text/plain',
     'text/markdown',
   ]

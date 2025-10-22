@@ -58,30 +58,32 @@ export async function POST(request: NextRequest) {
         password: hashedPassword,
         department: department || null,
         role: 'user',
+        isEmailVerified: false,
       },
     })
 
     // Generate email verification token
-    const verificationToken = await createEmailVerificationToken(email.toLowerCase())
+    const verificationToken = await createEmailVerificationToken(user.id)
 
     // Send verification email
-    const emailSent = await sendVerificationEmail(email.toLowerCase(), verificationToken)
-
-    if (!emailSent) {
-      console.error('Failed to send verification email to:', email)
-      // Don't fail the registration, just log the error
+    try {
+      await sendVerificationEmail(user.email, user.name, verificationToken)
+    } catch (emailError) {
+      console.error('Failed to send verification email:', emailError)
+      // Don't fail registration if email sending fails
     }
 
-    // Return success response (don't include sensitive data)
+    // Return success response
     return NextResponse.json(
       {
-        message: 'User registered successfully. Please check your email to verify your account.',
+        message: 'User registered successfully. Please check your email to verify your account before logging in.',
         user: {
           id: user.id,
           name: user.name,
           email: user.email,
           department: user.department,
           role: user.role,
+          isActive: user.isActive,
           isEmailVerified: user.isEmailVerified,
         },
       },

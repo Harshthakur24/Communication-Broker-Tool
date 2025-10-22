@@ -63,14 +63,12 @@ export const LoginForm: React.FC<LoginFormProps> = ({
             transition={{ duration: 0.3 }}
             className={cn('w-full', className)}
         >
-            <div className="text-center mb-8">
-                <div className="w-20 h-20 bg-gradient-to-br from-purple-600 to-purple-700 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-                    <Lock className="w-10 h-10 text-white" />
-                </div>
-                <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent mb-3">
+            <div className="text-center mb-8 mt-14">
+
+                <h2 className="text-4xl font-bold bg-gray-900 bg-clip-text text-transparent mb-3">
                     Welcome Back
                 </h2>
-                <p className="text-gray-600">Sign in to your AI Communication Hub</p>
+                <p className="text-gray-800">Sign in to your AI Communication Hub</p>
             </div>
 
             {error && (
@@ -94,7 +92,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({
                         onChange={handleInputChange}
                         required
                         disabled={isLoading}
-                        className="h-12 px-4 bg-white border-gray-200 rounded-xl text-base placeholder:text-gray-400"
+                        className="px-4 py-7 bg-white border-gray-200 rounded-full text-base placeholder:text-gray-400"
+                        suppressHydrationWarning
                     />
                 </div>
 
@@ -108,12 +107,13 @@ export const LoginForm: React.FC<LoginFormProps> = ({
                             onChange={handleInputChange}
                             required
                             disabled={isLoading}
-                            className="h-12 px-4 pr-12 bg-white border-gray-200 rounded-xl text-base placeholder:text-gray-400"
+                            className="px-4 py-7 bg-white border-gray-200 rounded-full text-base placeholder:text-gray-400"
+                            suppressHydrationWarning
                         />
                         <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                            className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
                             disabled={isLoading}
                         >
                             {showPassword ? (
@@ -129,7 +129,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
                     <button
                         type="button"
                         onClick={onSwitchToForgotPassword}
-                        className="text-sm text-purple-600 hover:text-purple-700 font-medium transition-colors"
+                        className="text-sm text-purple-600 hover:text-purple-700 font-medium transition-colors cursor-pointer"
                         disabled={isLoading}
                     >
                         Forgot Password?
@@ -138,7 +138,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
                 <Button
                     type="submit"
-                    className="w-full h-12 bg-black hover:bg-gray-800 text-white rounded-xl text-base font-medium"
+                    className="w-full px-4 py-7 bg-black hover:bg-gray-900 text-white rounded-full text-base font-medium"
                     disabled={isLoading}
                 >
                     {isLoading ? (
@@ -158,7 +158,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
                     <button
                         type="button"
                         onClick={onSwitchToRegister}
-                        className="text-purple-600 hover:text-purple-700 font-medium transition-colors"
+                        className="text-purple-600 hover:text-purple-700 font-medium transition-colors cursor-pointer"
                         disabled={isLoading}
                     >
                         Sign up

@@ -12,11 +12,18 @@ import {
     Sparkles,
     Loader2,
     CheckCircle,
-    AlertCircle
+    AlertCircle,
+    Upload,
+    FileText,
+    X,
+    Copy,
+    File
 } from 'lucide-react'
-import { Button, Input, LoadingDots, Tooltip } from '@/components/ui'
+import { Button, Input, LoadingDots } from '@/components/ui'
+import { toast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
 import { useChatMessages, useChatSuggestions } from '@/hooks/useApi'
+import { ChatSearch } from './ChatSearch'
 
 interface Message {
     id: string
@@ -27,6 +34,7 @@ interface Message {
     userName?: string
     userAvatar?: string
     sources?: Array<{ title: string; url: string }>
+    attachments?: Array<{ name: string; type: string; content?: string }>
 }
 
 interface EnhancedChatInterfaceProps {
@@ -89,7 +97,7 @@ const WelcomeMessage: React.FC<{ onPromptClick: (prompt: string) => void }> = ({
                         whileHover={{ scale: 1.05, y: -2 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => onPromptClick(prompt)}
-                        className="px-6 py-3 text-sm bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-xl hover:border-purple-300 hover:bg-purple-50/80 transition-all duration-300 text-gray-700 hover:text-purple-700 shadow-md hover:shadow-lg font-medium"
+                        className="px-6 py-3 text-sm bg-white/80 backdrop-blur-sm border border-gray-200/50 rounded-xl hover:border-purple-300 hover:bg-purple-50/80 transition-all duration-300 text-gray-700 hover:text-purple-700 shadow-md hover:shadow-lg font-medium cursor-pointer"
                     >
                         {prompt}
                     </motion.button>
@@ -101,6 +109,7 @@ const WelcomeMessage: React.FC<{ onPromptClick: (prompt: string) => void }> = ({
 
 const MessageBubble: React.FC<{ message: Message; index: number }> = ({ message, index }) => {
     const isUser = message.type === 'user'
+    const [showAllSources, setShowAllSources] = React.useState(false)
 
     return (
         <motion.div
@@ -143,6 +152,25 @@ const MessageBubble: React.FC<{ message: Message; index: number }> = ({ message,
             >
                 <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
 
+                {message.attachments && message.attachments.length > 0 && (
+                    <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        transition={{ delay: index * 0.1 + 0.2 }}
+                        className="mt-3 pt-3 border-t border-gray-200"
+                    >
+                        <p className="text-xs text-gray-500 mb-2">Attachments:</p>
+                        <div className="space-y-1">
+                            {message.attachments.map((attachment, idx) => (
+                                <div key={idx} className="flex items-center space-x-2 text-xs text-purple-600">
+                                    <File className="w-3 h-3" />
+                                    <span>{attachment.name}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </motion.div>
+                )}
+
                 {message.sources && message.sources.length > 0 && (
                     <motion.div
                         initial={{ opacity: 0, height: 0 }}
@@ -152,7 +180,7 @@ const MessageBubble: React.FC<{ message: Message; index: number }> = ({ message,
                     >
                         <p className="text-xs text-gray-500 mb-2">Sources:</p>
                         <div className="space-y-1">
-                            {message.sources.map((source, idx) => (
+                            {(showAllSources ? message.sources : message.sources.slice(0, 3)).map((source, idx) => (
                                 <a
                                     key={idx}
                                     href={source.url}
@@ -163,6 +191,17 @@ const MessageBubble: React.FC<{ message: Message; index: number }> = ({ message,
                                     {source.title}
                                 </a>
                             ))}
+                            {message.sources.length > 3 && (
+                                <button
+                                    onClick={() => setShowAllSources(!showAllSources)}
+                                    className="text-xs text-purple-500 hover:text-purple-600 underline"
+                                >
+                                    {showAllSources
+                                        ? 'Hide sources'
+                                        : `See all ${message.sources.length} sources`
+                                    }
+                                </button>
+                            )}
                         </div>
                     </motion.div>
                 )}
@@ -187,10 +226,15 @@ export const EnhancedChatInterface: React.FC<EnhancedChatInterfaceProps> = ({ cl
     const [messages, setMessages] = useState<Message[]>([])
     const [inputValue, setInputValue] = useState('')
     const [isLoading, setIsLoading] = useState(false)
+    const [showUploadModal, setShowUploadModal] = useState(false)
+    const [showPasteModal, setShowPasteModal] = useState(false)
+    const [pasteContent, setPasteContent] = useState('')
+    const [attachments, setAttachments] = useState<Array<{ name: string; type: string; content?: string }>>([])
     const messagesEndRef = useRef<HTMLDivElement>(null)
     const inputRef = useRef<HTMLTextAreaElement>(null)
+    const fileInputRef = useRef<HTMLInputElement>(null)
 
-    const { data: messagesData, refetch: refetchMessages } = useChatMessages()
+    const { data: messagesData } = useChatMessages()
 
     useEffect(() => {
         if (messagesData?.messages) {
@@ -218,11 +262,13 @@ export const EnhancedChatInterface: React.FC<EnhancedChatInterfaceProps> = ({ cl
             content: content.trim(),
             timestamp: new Date(),
             userId: 'current-user',
-            userName: 'You'
+            userName: 'You',
+            attachments: attachments.length > 0 ? attachments : undefined
         }
 
         setMessages(prev => [...prev, userMessage])
         setInputValue('')
+        setAttachments([]) // Clear attachments after sending
         setIsLoading(true)
 
         try {
@@ -231,7 +277,10 @@ export const EnhancedChatInterface: React.FC<EnhancedChatInterfaceProps> = ({ cl
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ message: content.trim() }),
+                body: JSON.stringify({
+                    message: content.trim(),
+                    attachments: attachments.length > 0 ? attachments : undefined
+                }),
             })
 
             const data = await response.json()
@@ -272,8 +321,77 @@ export const EnhancedChatInterface: React.FC<EnhancedChatInterfaceProps> = ({ cl
         inputRef.current?.focus()
     }
 
+    const handleFileUpload = async (file: File) => {
+        try {
+            const formData = new FormData()
+            formData.append('file', file)
+
+            const response = await fetch('/api/documents/upload', {
+                method: 'POST',
+                body: formData,
+            })
+
+            if (response.ok) {
+                const result = await response.json()
+                toast({
+                    title: "Success",
+                    description: `File "${file.name}" uploaded successfully!`,
+                })
+
+                // Add to attachments
+                const attachment = {
+                    name: file.name,
+                    type: file.type,
+                    content: result.document?.content || ''
+                }
+                setAttachments(prev => [...prev, attachment])
+
+                // Add to input message
+                setInputValue(prev => prev + `\n\n[Attached: ${file.name}]`)
+            } else {
+                const error = await response.json()
+                throw new Error(error.error || 'Upload failed')
+            }
+        } catch (error) {
+            console.error('File upload error:', error)
+            toast({
+                title: "Error",
+                description: `Failed to upload "${file.name}": ${error instanceof Error ? error.message : 'Unknown error'}`,
+            })
+        }
+    }
+
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0]
+            handleFileUpload(file)
+        }
+    }
+
+    const handlePasteData = () => {
+        if (pasteContent.trim()) {
+            const attachment = {
+                name: 'Pasted Content',
+                type: 'text/plain',
+                content: pasteContent
+            }
+            setAttachments(prev => [...prev, attachment])
+            setInputValue(prev => prev + `\n\n[Pasted Content]\n${pasteContent}`)
+            setPasteContent('')
+            setShowPasteModal(false)
+            toast({
+                title: "Success",
+                description: "Content pasted successfully!",
+            })
+        }
+    }
+
+    const removeAttachment = (index: number) => {
+        setAttachments(prev => prev.filter((_, i) => i !== index))
+    }
+
     return (
-        <div className={cn('flex flex-col h-full bg-white', className)}>
+        <div className={cn('flex flex-col h-full bg-white', className)} style={{ height: '100vh', maxHeight: '100vh' }}>
             {/* Chat Header */}
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
@@ -296,6 +414,16 @@ export const EnhancedChatInterface: React.FC<EnhancedChatInterfaceProps> = ({ cl
                         </div>
                     </div>
                     <div className="flex items-center space-x-2">
+                        <ChatSearch
+                            onResultSelect={(result) => {
+                                // Add search result as context to the chat
+                                setInputValue(prev => prev + `\n\n[Found: ${result.title}]\n${result.snippet}`)
+                            }}
+                            onSearchQuery={(query) => {
+                                // Optional: Handle search query changes
+                                console.log('Search query:', query)
+                            }}
+                        />
                         <motion.div
                             whileHover={{ scale: 1.05 }}
                             className="flex items-center space-x-2 px-3 py-1.5 bg-green-50 rounded-full border border-green-200"
@@ -303,17 +431,15 @@ export const EnhancedChatInterface: React.FC<EnhancedChatInterfaceProps> = ({ cl
                             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                             <span className="text-xs text-green-700 font-medium">Online</span>
                         </motion.div>
-                        <Tooltip content="More options">
-                            <Button variant="ghost" size="icon" className="hover:bg-purple-50">
-                                <MoreHorizontal className="w-5 h-5" />
-                            </Button>
-                        </Tooltip>
+                        <Button variant="ghost" size="icon" className="hover:bg-purple-50" title="More options">
+                            <MoreHorizontal className="w-5 h-5" />
+                        </Button>
                     </div>
                 </div>
             </motion.div>
 
             {/* Messages Container */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-6">
+            <div className="flex-1 overflow-y-auto p-4 space-y-6 chat-container min-h-0" style={{ maxHeight: 'calc(100vh - 200px)' }}>
                 {messages.length === 0 ? (
                     <WelcomeMessage onPromptClick={handlePromptClick} />
                 ) : (
@@ -366,16 +492,27 @@ export const EnhancedChatInterface: React.FC<EnhancedChatInterfaceProps> = ({ cl
                         transition={{ duration: 0.2 }}
                     />
                     <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
-                        <Tooltip content="Attach file">
-                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-purple-50">
-                                <Paperclip className="w-4 h-4" />
-                            </Button>
-                        </Tooltip>
-                        <Tooltip content="Add emoji">
-                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-purple-50">
-                                <Smile className="w-4 h-4" />
-                            </Button>
-                        </Tooltip>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 hover:bg-purple-50"
+                            title="Upload file"
+                            onClick={() => fileInputRef.current?.click()}
+                        >
+                            <Upload className="w-4 h-4" />
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 hover:bg-purple-50"
+                            title="Paste content"
+                            onClick={() => setShowPasteModal(true)}
+                        >
+                            <Copy className="w-4 h-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-purple-50" title="Add emoji">
+                            <Smile className="w-4 h-4" />
+                        </Button>
                         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                             <Button
                                 onClick={() => handleSendMessage(inputValue)}
@@ -396,7 +533,91 @@ export const EnhancedChatInterface: React.FC<EnhancedChatInterfaceProps> = ({ cl
                     <span className="mr-2">💡</span>
                     Press Enter to send, Shift+Enter for new line
                 </motion.p>
+
+                {/* Attachments Display */}
+                {attachments.length > 0 && (
+                    <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        className="mt-3 space-y-2"
+                    >
+                        <p className="text-xs text-gray-500 font-medium">Attachments:</p>
+                        <div className="flex flex-wrap gap-2">
+                            {attachments.map((attachment, index) => (
+                                <motion.div
+                                    key={index}
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="flex items-center space-x-2 bg-purple-50 border border-purple-200 rounded-lg px-3 py-2"
+                                >
+                                    <FileText className="w-4 h-4 text-purple-600" />
+                                    <span className="text-sm text-purple-700">{attachment.name}</span>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => removeAttachment(index)}
+                                        className="h-6 w-6 p-0 hover:bg-red-100"
+                                    >
+                                        <X className="w-3 h-3 text-red-500" />
+                                    </Button>
+                                </motion.div>
+                            ))}
+                        </div>
+                    </motion.div>
+                )}
             </motion.div>
+
+            {/* Hidden file input */}
+            <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.docx,.doc,.rtf,.odt,.txt,.md"
+                onChange={handleFileSelect}
+                className="hidden"
+            />
+
+            {/* Paste Modal */}
+            <AnimatePresence>
+                {showPasteModal && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+                        onClick={() => setShowPasteModal(false)}
+                    >
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            className="bg-white rounded-xl p-6 w-full max-w-md mx-4"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Paste Content</h3>
+                            <textarea
+                                value={pasteContent}
+                                onChange={(e) => setPasteContent(e.target.value)}
+                                placeholder="Paste your content here..."
+                                className="w-full h-32 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+                            />
+                            <div className="flex justify-end space-x-3 mt-4">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setShowPasteModal(false)}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    onClick={handlePasteData}
+                                    disabled={!pasteContent.trim()}
+                                >
+                                    Add Content
+                                </Button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     )
 }

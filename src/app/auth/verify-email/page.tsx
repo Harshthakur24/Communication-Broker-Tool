@@ -1,12 +1,12 @@
 'use client'
 
-import React, { useState, useEffect, Suspense } from 'react'
-import { motion } from 'framer-motion'
+import { useState, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { CheckCircle, XCircle, Loader2, Mail } from 'lucide-react'
-import { Button } from '@/components/ui'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { CheckCircle, XCircle, Loader2 } from 'lucide-react'
 
-function VerifyEmailContent() {
+export default function VerifyEmailPage() {
     const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
     const [message, setMessage] = useState('')
     const searchParams = useSearchParams()
@@ -22,18 +22,22 @@ function VerifyEmailContent() {
 
         const verifyEmail = async () => {
             try {
-                const response = await fetch(`/api/auth/verify-email?token=${token}`, {
-                    method: 'GET',
+                const response = await fetch('/api/auth/verify-email', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ token }),
                 })
 
                 const data = await response.json()
 
                 if (response.ok) {
                     setStatus('success')
-                    setMessage('Email verified successfully! You can now log in.')
+                    setMessage(data.message)
                 } else {
                     setStatus('error')
-                    setMessage(data.error || 'Email verification failed')
+                    setMessage(data.error || 'Verification failed')
                 }
             } catch (error) {
                 setStatus('error')
@@ -44,97 +48,69 @@ function VerifyEmailContent() {
         verifyEmail()
     }, [token])
 
-    const handleGoToLogin = () => {
+    const handleContinue = () => {
         router.push('/auth')
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50 flex items-center justify-center p-4">
-            {/* Background Pattern */}
-            <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-float"></div>
-                <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-float" style={{ animationDelay: '2s' }}></div>
-            </div>
-
-            {/* Main Content */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="relative z-10 w-full max-w-md"
-            >
-                <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 p-8 text-center">
-                    {/* Icon */}
-                    <motion.div
-                        initial={{ scale: 0.8 }}
-                        animate={{ scale: 1 }}
-                        transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                        className="w-20 h-20 mx-auto mb-6 flex items-center justify-center"
-                    >
+        <div className="min-h-screen bg-gradient-to-br from-purple-50 to-white flex items-center justify-center p-4">
+            <Card className="w-full max-w-md">
+                <CardHeader className="text-center">
+                    <div className="mx-auto mb-4">
                         {status === 'loading' && (
-                            <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
-                                <Loader2 className="w-10 h-10 text-white animate-spin" />
-                            </div>
+                            <Loader2 className="w-12 h-12 text-purple-600 animate-spin" />
                         )}
                         {status === 'success' && (
-                            <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center">
-                                <CheckCircle className="w-10 h-10 text-white" />
-                            </div>
+                            <CheckCircle className="w-12 h-12 text-green-600" />
                         )}
                         {status === 'error' && (
-                            <div className="w-20 h-20 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center">
-                                <XCircle className="w-10 h-10 text-white" />
-                            </div>
+                            <XCircle className="w-12 h-12 text-red-600" />
                         )}
-                    </motion.div>
-
-                    {/* Title */}
-                    <motion.h1
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 }}
-                        className="text-2xl font-bold text-gray-900 mb-4"
-                    >
+                    </div>
+                    <CardTitle className="text-2xl font-bold">
                         {status === 'loading' && 'Verifying Email...'}
                         {status === 'success' && 'Email Verified!'}
                         {status === 'error' && 'Verification Failed'}
-                    </motion.h1>
+                    </CardTitle>
+                    <CardDescription>
+                        {status === 'loading' && 'Please wait while we verify your email address.'}
+                        {status === 'success' && 'Your email has been successfully verified.'}
+                        {status === 'error' && 'There was a problem verifying your email address.'}
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="text-center">
+                        <p className="text-sm text-gray-600">{message}</p>
+                    </div>
 
-                    {/* Message */}
-                    <motion.p
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.4 }}
-                        className="text-gray-600 mb-6"
-                    >
-                        {message}
-                    </motion.p>
-
-                    {/* Action Button */}
-                    {status !== 'loading' && (
-                        <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.5 }}
+                    {status === 'success' && (
+                        <Button
+                            onClick={handleContinue}
+                            className="w-full bg-purple-600 hover:bg-purple-700"
                         >
+                            Continue to Login
+                        </Button>
+                    )}
+
+                    {status === 'error' && (
+                        <div className="space-y-2">
                             <Button
-                                onClick={handleGoToLogin}
+                                onClick={() => router.push('/auth')}
+                                variant="outline"
                                 className="w-full"
                             >
-                                Go to Login
+                                Back to Login
                             </Button>
-                        </motion.div>
+                            <Button
+                                onClick={() => router.push('/auth')}
+                                className="w-full bg-purple-600 hover:bg-purple-700"
+                            >
+                                Try Again
+                            </Button>
+                        </div>
                     )}
-                </div>
-            </motion.div>
+                </CardContent>
+            </Card>
         </div>
-    )
-}
-
-export default function VerifyEmailPage() {
-    return (
-        <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
-            <VerifyEmailContent />
-        </Suspense>
     )
 }

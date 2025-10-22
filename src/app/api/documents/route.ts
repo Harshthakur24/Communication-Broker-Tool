@@ -121,6 +121,9 @@ export async function DELETE(request: NextRequest) {
       const { searchParams } = new URL(request.url)
       const documentId = searchParams.get('id')
       
+      console.log('DELETE request with query params:', searchParams.toString())
+      console.log('Document ID from query:', documentId)
+      
       if (!documentId) {
         return NextResponse.json(
           { error: 'Document ID is required' },
@@ -131,12 +134,24 @@ export async function DELETE(request: NextRequest) {
       // Check if user owns the document or is admin
       const document = await prisma.document.findUnique({
         where: { id: documentId },
-        select: { uploadedBy: true },
+        select: { uploadedBy: true, isActive: true },
       })
       
+      console.log('Document found in main route:', document)
+      console.log('User ID:', user.id, 'User role:', user.role)
+      
       if (!document) {
+        console.log('Document not found in database (main route)')
         return NextResponse.json(
           { error: 'Document not found' },
+          { status: 404 }
+        )
+      }
+      
+      if (!document.isActive) {
+        console.log('Document already deleted')
+        return NextResponse.json(
+          { error: 'Document already deleted' },
           { status: 404 }
         )
       }

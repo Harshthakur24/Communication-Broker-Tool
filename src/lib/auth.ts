@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import { prisma } from './database'
 import crypto from 'crypto'
+import { prisma } from './database'
 
 export interface JWTPayload {
   userId: string
@@ -31,128 +31,33 @@ export const verifyToken = (token: string): JWTPayload | null => {
   }
 }
 
-export const generateRandomToken = (): string => {
-  return crypto.randomBytes(32).toString('hex')
-}
+export const getUserFromToken = async (token: string): Promise<any | null> => {
+  const payload = verifyToken(token)
+  if (!payload) return null
 
-export const createSession = async (userId: string): Promise<string> => {
-  const token = generateRandomToken()
-  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: payload.userId },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        avatar: true,
+        department: true,
+        role: true,
+        isActive: true,
+        isEmailVerified: true,
+        lastLogin: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    })
 
-  await prisma.session.create({
-    data: {
-      userId,
-      token,
-      expiresAt,
-    },
-  })
-
-  return token
-}
-
-export const validateSession = async (token: string): Promise<{ user: any; session: any } | null> => {
-  const session = await prisma.session.findUnique({
-    where: { token },
-    include: { user: true },
-  })
-
-  if (!session || session.expiresAt < new Date()) {
+    if (!user || !user.isActive) return null
+    return user
+  } catch (error) {
     return null
   }
-
-  return { user: session.user, session }
-}
-
-export const deleteSession = async (token: string): Promise<void> => {
-  await prisma.session.delete({
-    where: { token },
-  })
-}
-
-export const deleteAllUserSessions = async (userId: string): Promise<void> => {
-  await prisma.session.deleteMany({
-    where: { userId },
-  })
-}
-
-export const createPasswordResetToken = async (email: string): Promise<string> => {
-  const token = generateRandomToken()
-  const expiresAt = new Date(Date.now() + 60 * 60 * 1000) // 1 hour
-
-  // Delete any existing password reset tokens for this email
-  await prisma.passwordReset.deleteMany({
-    where: { email },
-  })
-
-  // Create new password reset token
-  await prisma.passwordReset.create({
-    data: {
-      email,
-      token,
-      expiresAt,
-    },
-  })
-
-  return token
-}
-
-export const validatePasswordResetToken = async (token: string): Promise<{ email: string } | null> => {
-  const resetToken = await prisma.passwordReset.findUnique({
-    where: { token },
-  })
-
-  if (!resetToken || resetToken.expiresAt < new Date() || resetToken.used) {
-    return null
-  }
-
-  return { email: resetToken.email }
-}
-
-export const markPasswordResetTokenAsUsed = async (token: string): Promise<void> => {
-  await prisma.passwordReset.update({
-    where: { token },
-    data: { used: true },
-  })
-}
-
-export const createEmailVerificationToken = async (email: string): Promise<string> => {
-  const token = generateRandomToken()
-  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
-
-  // Delete any existing email verification tokens for this email
-  await prisma.emailVerification.deleteMany({
-    where: { email },
-  })
-
-  // Create new email verification token
-  await prisma.emailVerification.create({
-    data: {
-      email,
-      token,
-      expiresAt,
-    },
-  })
-
-  return token
-}
-
-export const validateEmailVerificationToken = async (token: string): Promise<{ email: string } | null> => {
-  const verificationToken = await prisma.emailVerification.findUnique({
-    where: { token },
-  })
-
-  if (!verificationToken || verificationToken.expiresAt < new Date() || verificationToken.used) {
-    return null
-  }
-
-  return { email: verificationToken.email }
-}
-
-export const markEmailVerificationTokenAsUsed = async (token: string): Promise<void> => {
-  await prisma.emailVerification.update({
-    where: { token },
-    data: { used: true },
-  })
 }
 
 export const validatePassword = (password: string): { isValid: boolean; errors: string[] } => {
@@ -171,4 +76,54 @@ export const validatePassword = (password: string): { isValid: boolean; errors: 
 export const validateEmail = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   return emailRegex.test(email)
+}
+
+// Email verification functions
+export const createEmailVerificationToken = async (userId: string): Promise<string> => {
+  const token = crypto.randomBytes(32).toString('hex')
+  const expires = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      emailVerificationToken: token,
+      emailVerificationExpires: expires,
+    },
+  })
+
+  return token
+}
+
+export const validateEmailVerificationToken = async (token: string): Promise<{ valid: boolean; userId?: string }> => {
+  try {
+    const user = await prisma.user.findFirst({
+      where: {
+        emailVerificationToken: token,
+        emailVerificationExpires: {
+          gt: new Date(),
+        },
+      },
+      select: { id: true },
+    })
+
+    if (!user) {
+      return { valid: false }
+    }
+
+    return { valid: true, userId: user.id }
+  } catch (error) {
+    console.error('Error validating email verification token:', error)
+    return { valid: false }
+  }
+}
+
+export const markEmailVerificationTokenAsUsed = async (userId: string): Promise<void> => {
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      isEmailVerified: true,
+      emailVerificationToken: null,
+      emailVerificationExpires: null,
+    },
+  })
 }
