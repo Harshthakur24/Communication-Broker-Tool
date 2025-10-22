@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { CheckCircle, XCircle, Loader2, Mail, ArrowRight, RefreshCw } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
-export default function VerifyEmailPage() {
+function VerifyEmailContent() {
     const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
     const [message, setMessage] = useState('')
     const [mounted, setMounted] = useState(false)
@@ -240,5 +240,30 @@ export default function VerifyEmailPage() {
                 </Card>
             </motion.div>
         </div>
+    )
+}
+
+export default function VerifyEmailPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center p-4 relative overflow-hidden">
+                <div className="w-full max-w-md">
+                    <Card className="backdrop-blur-sm bg-white/80 border-0 shadow-2xl">
+                        <CardHeader className="text-center pb-6">
+                            <div className="mx-auto mb-6">
+                                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center shadow-lg">
+                                    <Loader2 className="w-10 h-10 text-purple-600 animate-spin" />
+                                </div>
+                            </div>
+                            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2">
+                                Loading...
+                            </CardTitle>
+                        </CardHeader>
+                    </Card>
+                </div>
+            </div>
+        }>
+            <VerifyEmailContent />
+        </Suspense>
     )
 }
