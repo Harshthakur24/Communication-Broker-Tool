@@ -1,17 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { deleteSession } from '@/lib/auth'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
   try {
-    const sessionToken = request.cookies.get('session')?.value
-
-    if (sessionToken) {
-      await deleteSession(sessionToken)
-    }
-
     const response = NextResponse.json(
       { message: 'Logout successful' },
       { status: 200 }
