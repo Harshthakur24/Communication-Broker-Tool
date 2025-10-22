@@ -14,6 +14,7 @@
     "db:studio": "npx prisma studio"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@headlessui/react": "^2.2.9",
     "@pinecone-database/pinecone": "^6.1.2",
     "@prisma/client": "^6.17.1",

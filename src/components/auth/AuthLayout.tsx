@@ -253,7 +253,7 @@ function AuthContent() {
                         className="text-center mt-8"
                     >
                         <p className="text-sm text-gray-500">
-                            © 2024 AI Communication Hub. All rights reserved.
+                            © 2025 AI Communication Hub. All rights reserved.
                         </p>
                     </motion.div>
                 </motion.div>
@@ -262,10 +262,16 @@ function AuthContent() {
     )
 }
 
-export default function AuthLayout() {
+interface AuthLayoutProps {
+    suppressHydrationWarning?: boolean;
+}
+
+export default function AuthLayout({ suppressHydrationWarning }: AuthLayoutProps) {
     return (
         <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
-            <AuthContent />
+            <div suppressHydrationWarning={suppressHydrationWarning}>
+                <AuthContent />
+            </div>
         </Suspense>
     )
 }

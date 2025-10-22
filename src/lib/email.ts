@@ -86,7 +86,7 @@ export const sendVerificationEmail = async (email: string, name: string, token: 
         </div>
         <div class="footer">
           <p>This verification link will expire in 24 hours.</p>
-          <p>© 2024 AI Communication Hub. All rights reserved.</p>
+          <p>© 2025 AI Communication Hub. All rights reserved.</p>
         </div>
       </div>
     </body>
@@ -142,7 +142,7 @@ export const sendPasswordResetEmail = async (email: string, token: string): Prom
         </div>
         <div class="footer">
           <p>If you didn't request a password reset, you can safely ignore this email.</p>
-          <p>© 2024 AI Communication Hub. All rights reserved.</p>
+          <p>© 2025 AI Communication Hub. All rights reserved.</p>
         </div>
       </div>
     </body>

@@ -287,14 +287,14 @@ export const RightPanel: React.FC<RightPanelProps> = ({ className }) => {
             id: '1',
             title: 'Remote Work Guidelines',
             department: 'HR',
-            effectiveDate: 'Dec 1, 2024',
+            effectiveDate: 'Dec 1, 2025',
             isNew: true
         },
         {
             id: '2',
             title: 'Security Protocols',
             department: 'IT',
-            effectiveDate: 'Nov 15, 2024',
+            effectiveDate: 'Nov 15, 2025',
             isNew: false
         }
     ]

@@ -25,7 +25,6 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
         email: '',
         password: '',
         confirmPassword: '',
-        department: '',
     })
     const [showPassword, setShowPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -66,7 +65,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
             name: formData.name,
             email: formData.email,
             password: formData.password,
-            department: formData.department || undefined,
+
         })
 
         if (result.success) {
@@ -77,7 +76,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
                 email: '',
                 password: '',
                 confirmPassword: '',
-                department: '',
+
             })
         } else {
             toast.error(result.error || 'Registration failed')
@@ -102,12 +101,11 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
             transition={{ duration: 0.3 }}
             className={cn('w-full', className)}
         >
-            <div className="text-center mb-8">
-
-                <h2 className="text-5xl font-bold bg-gray-900 bg-clip-text text-transparent mb-3">
+            <div className="text-center mb-6">
+                <h2 className="text-4xl font-bold bg-gray-900 bg-clip-text text-transparent mb-2">
                     Create Account
                 </h2>
-                <p className="text-gray-600">Join the AI Communication Hub</p>
+                <p className="text-gray-600 text-sm">Join the AI Communication Hub</p>
             </div>
 
             {error && (
@@ -132,7 +130,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
                 </motion.div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-3">
+            <form onSubmit={handleSubmit} className="space-y-2">
                 <Input
                     type="text"
                     name="name"
@@ -157,16 +155,6 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
                     suppressHydrationWarning
                 />
 
-                <Input
-                    type="text"
-                    name="department"
-                    placeholder="Department (Optional)"
-                    value={formData.department}
-                    onChange={handleInputChange}
-                    disabled={isLoading}
-                    className="h-12 px-4 py-7 bg-white border-gray-200 rounded-full text-base placeholder:text-gray-400"
-                    suppressHydrationWarning
-                />
 
                 <div className="relative">
                     <Input
@@ -185,6 +173,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
                         onClick={() => setShowPassword(!showPassword)}
                         className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                         disabled={isLoading}
+                        suppressHydrationWarning
                     >
                         {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
@@ -207,6 +196,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                         className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                         disabled={isLoading}
+                        suppressHydrationWarning
                     >
                         {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
@@ -236,6 +226,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
                         onClick={onSwitchToLogin}
                         className="text-purple-600 hover:text-purple-700 font-medium transition-colors"
                         disabled={isLoading}
+                        suppressHydrationWarning
                     >
                         Sign in
                     </button>

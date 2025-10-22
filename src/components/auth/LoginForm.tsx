@@ -115,6 +115,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
                             onClick={() => setShowPassword(!showPassword)}
                             className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
                             disabled={isLoading}
+                            suppressHydrationWarning
                         >
                             {showPassword ? (
                                 <EyeOff className="w-5 h-5" />
@@ -131,6 +132,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
                         onClick={onSwitchToForgotPassword}
                         className="text-sm text-purple-600 hover:text-purple-700 font-medium transition-colors cursor-pointer"
                         disabled={isLoading}
+                        suppressHydrationWarning
                     >
                         Forgot Password?
                     </button>
@@ -160,6 +162,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
                         onClick={onSwitchToRegister}
                         className="text-purple-600 hover:text-purple-700 font-medium transition-colors cursor-pointer"
                         disabled={isLoading}
+                        suppressHydrationWarning
                     >
                         Sign up
                     </button>

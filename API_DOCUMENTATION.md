@@ -152,8 +152,8 @@ Get current authenticated user.
     "role": "user",
     "isEmailVerified": true,
     "avatar": null,
-    "lastLogin": "2024-01-15T10:30:00Z",
-    "createdAt": "2024-01-01T00:00:00Z"
+    "lastLogin": "2025-01-15T10:30:00Z",
+    "createdAt": "2025-01-01T00:00:00Z"
   }
 }
 ```
@@ -174,9 +174,9 @@ Get user profile information.
     "department": "Engineering",
     "role": "user",
     "isEmailVerified": true,
-    "lastLogin": "2024-01-15T10:30:00Z",
-    "createdAt": "2024-01-01T00:00:00Z",
-    "updatedAt": "2024-01-15T10:30:00Z"
+    "lastLogin": "2025-01-15T10:30:00Z",
+    "createdAt": "2025-01-01T00:00:00Z",
+    "updatedAt": "2025-01-15T10:30:00Z"
   }
 }
 ```
@@ -205,9 +205,9 @@ Update user profile information.
     "department": "Product",
     "role": "user",
     "isEmailVerified": true,
-    "lastLogin": "2024-01-15T10:30:00Z",
-    "createdAt": "2024-01-01T00:00:00Z",
-    "updatedAt": "2024-01-15T11:00:00Z"
+    "lastLogin": "2025-01-15T10:30:00Z",
+    "createdAt": "2025-01-01T00:00:00Z",
+    "updatedAt": "2025-01-15T11:00:00Z"
   }
 }
 ```
@@ -242,7 +242,7 @@ Get dashboard statistics and metrics.
     "user": {
       "accountAge": 15,
       "isEmailVerified": true,
-      "lastLogin": "2024-01-15T10:30:00Z"
+      "lastLogin": "2025-01-15T10:30:00Z"
     },
     "system": {
       "totalUsers": 150,
@@ -274,7 +274,7 @@ Get recent activity feed.
       "type": "message",
       "title": "New message from Sarah",
       "description": "Sarah sent a message about the Q4 project update",
-      "timestamp": "2024-01-15T10:25:00Z",
+      "timestamp": "2025-01-15T10:25:00Z",
       "read": false,
       "priority": "medium"
     }
@@ -299,7 +299,7 @@ Get chat messages.
       "id": "1",
       "type": "user",
       "content": "What are the current project priorities?",
-      "timestamp": "2024-01-15T10:20:00Z",
+      "timestamp": "2025-01-15T10:20:00Z",
       "userId": "user_id",
       "userName": "John Doe",
       "userAvatar": null
@@ -308,7 +308,7 @@ Get chat messages.
       "id": "2",
       "type": "assistant",
       "content": "Based on the latest updates, here are the current priorities...",
-      "timestamp": "2024-01-15T10:21:00Z",
+      "timestamp": "2025-01-15T10:21:00Z",
       "sources": [
         {
           "title": "Q4 Project Plan",
@@ -339,7 +339,7 @@ Send a new message to the AI assistant.
     "id": "1234567890",
     "type": "assistant",
     "content": "I understand you're asking about project priorities...",
-    "timestamp": "2024-01-15T10:30:00Z",
+    "timestamp": "2025-01-15T10:30:00Z",
     "sources": [
       {
         "title": "Company Knowledge Base",
@@ -387,7 +387,7 @@ Get user notifications.
       "type": "message",
       "title": "New message from Sarah",
       "description": "Sarah sent you a message about the Q4 project update",
-      "timestamp": "2024-01-15T10:25:00Z",
+      "timestamp": "2025-01-15T10:25:00Z",
       "read": false,
       "priority": "medium",
       "actionUrl": "/chat",

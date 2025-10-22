@@ -629,5 +629,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 <div align="center">
   <strong>Built with ❤️ using Next.js, TypeScript, and cutting-edge AI technology</strong>
   <br />
-  <sub>© 2024 AI Communication Hub. All rights reserved.</sub>
+  <sub>© 2025 AI Communication Hub. All rights reserved.</sub>
 </div>
