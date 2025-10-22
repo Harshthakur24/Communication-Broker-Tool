@@ -1,269 +1,263 @@
-'use client'
+'use client';
 
-import React from 'react'
-import { motion } from 'framer-motion'
-import {
-    MessageSquare,
-    FolderOpen,
-    Users,
-    FileText,
-    Settings,
-    Plus,
-    Search,
-    Clock,
-    Star
-} from 'lucide-react'
-import { Button, Avatar, Badge } from '@/components/ui'
-import { cn } from '@/lib/utils'
-
-interface NavItemProps {
-    icon: React.ComponentType<{ className?: string }>
-    label: string
-    active?: boolean
-    count?: number
-    onClick?: () => void
-    href?: string
-}
-
-const NavItem: React.FC<NavItemProps> = ({
-    icon: Icon,
-    label,
-    active = false,
-    count,
-    onClick,
-    href
-}) => {
-    const handleClick = () => {
-        if (href) {
-            window.location.href = href
-        } else if (onClick) {
-            onClick()
-        }
-    }
-
-    return (
-        <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={handleClick}
-            className={cn(
-                'flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-left transition-all duration-200 group',
-                active
-                    ? 'bg-purple-100 text-purple-700 shadow-soft'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-            )}
-        >
-            <div className="flex items-center space-x-3">
-                <Icon className={cn(
-                    'w-5 h-5 transition-colors',
-                    active ? 'text-purple-600' : 'text-gray-400 group-hover:text-gray-600'
-                )} />
-                <span className="font-medium text-sm">{label}</span>
-            </div>
-            {count !== undefined && count > 0 && (
-                <Badge variant="secondary" className="text-xs">
-                    {count}
-                </Badge>
-            )}
-        </motion.button>
-    )
-}
-
-interface RecentChatProps {
-    id: string
-    title: string
-    lastMessage: string
-    timestamp: string
-    unread?: boolean
-}
-
-const RecentChatItem: React.FC<RecentChatProps> = ({
-    title,
-    lastMessage,
-    timestamp,
-    unread = false
-}) => {
-    return (
-        <motion.div
-            whileHover={{ scale: 1.01 }}
-            className="flex items-start space-x-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
-        >
-            <div className="w-2 h-2 rounded-full bg-purple-500 mt-2 flex-shrink-0" />
-            <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-gray-900 truncate">{title}</p>
-                    <span className="text-xs text-gray-500">{timestamp}</span>
-                </div>
-                <p className="text-xs text-gray-500 truncate mt-0.5">{lastMessage}</p>
-            </div>
-            {unread && (
-                <div className="w-2 h-2 bg-purple-500 rounded-full flex-shrink-0 mt-2" />
-            )}
-        </motion.div>
-    )
-}
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { 
+  MessageSquare, 
+  FileText, 
+  Users, 
+  Settings, 
+  Search,
+  Plus,
+  Folder,
+  Star,
+  Clock,
+  X,
+  ChevronRight,
+  ChevronDown
+} from 'lucide-react';
 
 interface LeftSidebarProps {
-    className?: string
+  onClose: () => void;
 }
 
-export const LeftSidebar: React.FC<LeftSidebarProps> = ({ className }) => {
-    // Mock data - in real app, this would come from state management
-    const user = {
-        name: 'John Doe',
-        email: 'john.doe@company.com',
-        department: 'Engineering',
-        avatar: null
-    }
+const LeftSidebar: React.FC<LeftSidebarProps> = ({ onClose }) => {
+  const [expandedSections, setExpandedSections] = useState({
+    projects: true,
+    teams: true,
+    recent: false
+  });
 
-    const projects = [
-        { id: '1', name: 'Q4 Planning', count: 12 },
-        { id: '2', name: 'Mobile App', count: 8 },
-        { id: '3', name: 'API Redesign', count: 5 }
-    ]
+  const toggleSection = (section: keyof typeof expandedSections) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
 
-    const teams = [
-        { id: '1', name: 'Engineering', count: 24 },
-        { id: '2', name: 'Design', count: 8 },
-        { id: '3', name: 'Product', count: 6 }
-    ]
+  const projects = [
+    { id: 1, name: 'Project Alpha', status: 'in-progress', color: 'bg-purple-500' },
+    { id: 2, name: 'Project Beta', status: 'planning', color: 'bg-blue-500' },
+    { id: 3, name: 'Project Gamma', status: 'completed', color: 'bg-green-500' },
+  ];
 
-    const recentChats = [
-        {
-            id: '1',
-            title: 'Project Status Update',
-            lastMessage: 'Can you check the current status of...',
-            timestamp: '2m',
-            unread: true
-        },
-        {
-            id: '2',
-            title: 'Policy Questions',
-            lastMessage: 'What is the new remote work policy?',
-            timestamp: '1h',
-            unread: false
-        },
-        {
-            id: '3',
-            title: 'Team Meeting Summary',
-            lastMessage: 'Summarize yesterday\'s standup',
-            timestamp: '3h',
-            unread: false
-        }
-    ]
+  const teams = [
+    { id: 1, name: 'Engineering', members: 12, color: 'bg-purple-500' },
+    { id: 2, name: 'Design', members: 8, color: 'bg-pink-500' },
+    { id: 3, name: 'Marketing', members: 6, color: 'bg-blue-500' },
+  ];
 
-    return (
-        <motion.aside
-            initial={{ x: -300, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 0.3, ease: 'easeOut' }}
-            className={cn(
-                'w-64 bg-white/90 backdrop-blur-md border-r border-gray-200/50 flex flex-col h-full shadow-xl',
-                className
+  const recentChats = [
+    { id: 1, title: 'Project Alpha Discussion', lastMessage: '2 min ago' },
+    { id: 2, title: 'HR Policy Questions', lastMessage: '1 hour ago' },
+    { id: 3, title: 'Q4 Planning', lastMessage: '3 hours ago' },
+  ];
+
+  return (
+    <div className="h-full flex flex-col bg-white">
+      {/* Header */}
+      <div className="p-4 border-b border-gray-200">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-gray-900">AI Hub</h2>
+          <button
+            onClick={onClose}
+            className="p-1 rounded-md hover:bg-gray-100 lg:hidden"
+          >
+            <X className="w-5 h-5 text-gray-500" />
+          </button>
+        </div>
+      </div>
+
+      {/* Search */}
+      <div className="p-4 border-b border-gray-200">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search conversations..."
+            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          />
+        </div>
+      </div>
+
+      {/* Navigation */}
+      <div className="flex-1 overflow-y-auto">
+        {/* Quick Actions */}
+        <div className="p-4">
+          <button className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+            <Plus className="w-4 h-4" />
+            New Conversation
+          </button>
+        </div>
+
+        {/* Projects Section */}
+        <div className="px-4 py-2">
+          <button
+            onClick={() => toggleSection('projects')}
+            className="w-full flex items-center justify-between py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+          >
+            <div className="flex items-center gap-2">
+              <Folder className="w-4 h-4" />
+              Projects
+            </div>
+            {expandedSections.projects ? (
+              <ChevronDown className="w-4 h-4" />
+            ) : (
+              <ChevronRight className="w-4 h-4" />
             )}
-        >
-            {/* User Profile Section */}
-            <div className="p-4 border-b border-gray-200/50 bg-gradient-to-r from-purple-50/50 to-white">
-                <div className="flex items-center space-x-3">
-                    <div className="relative">
-                        <Avatar
-                            src={user.avatar}
-                            fallback={user.name}
-                            size="md"
-                            className="ring-2 ring-purple-200 shadow-lg"
-                        />
-                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-gray-900 truncate">{user.name}</p>
-                        <p className="text-sm text-purple-600 font-medium truncate">{user.department}</p>
-                    </div>
-                </div>
-            </div>
-
-            {/* Search Bar */}
-            <div className="p-4 border-b border-gray-200/50">
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input
-                        type="text"
-                        placeholder="Search conversations..."
-                        className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-300/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-white/50 backdrop-blur-sm hover:bg-white/80 focus:bg-white"
-                    />
-                </div>
-            </div>
-
-            {/* Quick Actions */}
-            <div className="p-4 border-b border-gray-200">
-                <Button
-                    variant="default"
-                    size="sm"
-                    className="w-full"
-                    onClick={() => console.log('New chat')}
+          </button>
+          
+          {expandedSections.projects && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mt-2 space-y-1"
+            >
+              {projects.map((project) => (
+                <div
+                  key={project.id}
+                  className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 cursor-pointer group"
                 >
-                    <Plus className="w-4 h-4 mr-2" />
-                    New Chat
-                </Button>
-            </div>
+                  <div className={`w-3 h-3 rounded-full ${project.color}`} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">
+                      {project.name}
+                    </p>
+                    <p className="text-xs text-gray-500 capitalize">
+                      {project.status.replace('-', ' ')}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </motion.div>
+          )}
+        </div>
 
-            {/* Navigation Menu */}
-            <nav className="flex-1 p-4 space-y-2">
-                <div className="space-y-1">
-                    <NavItem
-                        icon={MessageSquare}
-                        label="All Chats"
-                        active={true}
-                    />
-                    <NavItem
-                        icon={FolderOpen}
-                        label="Projects"
-                        count={projects.length}
-                    />
-                    <NavItem
-                        icon={Users}
-                        label="Teams"
-                        count={teams.length}
-                    />
-                    <NavItem
-                        icon={FileText}
-                        label="Knowledge Base"
-                        href="/knowledge-base"
-                    />
-                    <NavItem
-                        icon={Settings}
-                        label="Settings"
-                    />
-                </div>
-            </nav>
-
-            {/* Recent Chats */}
-            <div className="p-4 border-t border-gray-200">
-                <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-semibold text-gray-700">Recent</h3>
-                    <Button variant="ghost" size="sm" className="text-xs">
-                        View All
-                    </Button>
-                </div>
-                <div className="space-y-1 max-h-48 overflow-y-auto">
-                    {recentChats.map((chat) => (
-                        <RecentChatItem key={chat.id} {...chat} />
-                    ))}
-                </div>
+        {/* Teams Section */}
+        <div className="px-4 py-2">
+          <button
+            onClick={() => toggleSection('teams')}
+            className="w-full flex items-center justify-between py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+          >
+            <div className="flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              Teams
             </div>
+            {expandedSections.teams ? (
+              <ChevronDown className="w-4 h-4" />
+            ) : (
+              <ChevronRight className="w-4 h-4" />
+            )}
+          </button>
+          
+          {expandedSections.teams && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mt-2 space-y-1"
+            >
+              {teams.map((team) => (
+                <div
+                  key={team.id}
+                  className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 cursor-pointer group"
+                >
+                  <div className={`w-3 h-3 rounded-full ${team.color}`} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">
+                      {team.name}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {team.members} members
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </motion.div>
+          )}
+        </div>
 
-            {/* Favorites */}
-            <div className="p-4 border-t border-gray-200">
-                <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-semibold text-gray-700">Favorites</h3>
-                    <Star className="w-4 h-4 text-gray-400" />
-                </div>
-                <div className="space-y-1">
-                    <div className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-50 cursor-pointer">
-                        <Clock className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm text-gray-600">Quick Actions</span>
-                    </div>
-                </div>
+        {/* Recent Conversations */}
+        <div className="px-4 py-2">
+          <button
+            onClick={() => toggleSection('recent')}
+            className="w-full flex items-center justify-between py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+          >
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4" />
+              Recent
             </div>
-        </motion.aside>
-    )
-}
+            {expandedSections.recent ? (
+              <ChevronDown className="w-4 h-4" />
+            ) : (
+              <ChevronRight className="w-4 h-4" />
+            )}
+          </button>
+          
+          {expandedSections.recent && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mt-2 space-y-1"
+            >
+              {recentChats.map((chat) => (
+                <div
+                  key={chat.id}
+                  className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 cursor-pointer group"
+                >
+                  <MessageSquare className="w-4 h-4 text-gray-400" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">
+                      {chat.title}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {chat.lastMessage}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </motion.div>
+          )}
+        </div>
+
+        {/* Favorites */}
+        <div className="px-4 py-2">
+          <div className="flex items-center gap-2 py-2 text-sm font-medium text-gray-700">
+            <Star className="w-4 h-4" />
+            Favorites
+          </div>
+          <div className="mt-2 space-y-1">
+            <div className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 cursor-pointer group">
+              <MessageSquare className="w-4 h-4 text-gray-400" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate">
+                  Company Policies
+                </p>
+                <p className="text-xs text-gray-500">
+                  Always up to date
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="p-4 border-t border-gray-200">
+        <div className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 cursor-pointer">
+          <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+            <Settings className="w-4 h-4 text-purple-600" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-gray-900">Settings</p>
+            <p className="text-xs text-gray-500">Preferences & account</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default LeftSidebar;

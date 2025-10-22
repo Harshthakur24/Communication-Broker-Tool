@@ -1,636 +1,359 @@
-# Modular Architecture Structure
+# Internal Company AI Communication Hub - Modular Architecture
 
 ## Project Structure
 
 ```
-communication-broker-tool/
+/workspace/
 ├── src/
 │   ├── app/                          # Next.js App Router
 │   │   ├── (auth)/                   # Auth route group
 │   │   │   ├── login/
-│   │   │   └── callback/
-│   │   ├── (dashboard)/              # Protected dashboard routes
-│   │   │   ├── chat/
-│   │   │   ├── projects/
-│   │   │   ├── settings/
-│   │   │   └── admin/
+│   │   │   ├── register/
+│   │   │   ├── forgot-password/
+│   │   │   └── reset-password/
+│   │   ├── dashboard/                # Main dashboard
+│   │   ├── knowledge-base/           # Knowledge base interface
+│   │   ├── profile/                  # User profile
 │   │   ├── api/                      # API routes
-│   │   │   ├── auth/
-│   │   │   ├── chat/
-│   │   │   ├── integrations/
-│   │   │   ├── rag/
-│   │   │   └── webhooks/
-│   │   ├── globals.css
-│   │   ├── layout.tsx
-│   │   └── page.tsx
+│   │   │   ├── auth/                 # Authentication endpoints
+│   │   │   ├── chat/                 # Chat API endpoints
+│   │   │   ├── documents/            # Document management
+│   │   │   ├── integrations/         # External integrations
+│   │   │   ├── rag/                  # RAG pipeline endpoints
+│   │   │   └── webhooks/             # Webhook handlers
+│   │   ├── globals.css               # Global styles
+│   │   ├── layout.tsx                # Root layout
+│   │   └── page.tsx                  # Home page
 │   │
-│   ├── components/                   # UI Components
+│   ├── components/                   # React Components
 │   │   ├── ui/                       # Base UI components
 │   │   │   ├── button.tsx
 │   │   │   ├── input.tsx
 │   │   │   ├── card.tsx
 │   │   │   ├── modal.tsx
+│   │   │   ├── toast.tsx
+│   │   │   ├── loading.tsx
+│   │   │   ├── avatar.tsx
+│   │   │   ├── badge.tsx
+│   │   │   ├── tooltip.tsx
 │   │   │   └── index.ts
-│   │   ├── chat/                     # Chat-specific components
-│   │   │   ├── ChatInterface.tsx
-│   │   │   ├── MessageBubble.tsx
-│   │   │   ├── MessageInput.tsx
-│   │   │   ├── TypingIndicator.tsx
-│   │   │   └── ChatHistory.tsx
 │   │   ├── layout/                   # Layout components
-│   │   │   ├── Sidebar.tsx
-│   │   │   ├── TopNavbar.tsx
-│   │   │   ├── NotificationDrawer.tsx
-│   │   │   └── ContextSidebar.tsx
-│   │   ├── dashboard/                # Dashboard components
-│   │   │   ├── ProjectCard.tsx
-│   │   │   ├── StatusIndicator.tsx
-│   │   │   ├── InsightPanel.tsx
-│   │   │   └── ActivityFeed.tsx
-│   │   └── common/                   # Shared components
-│   │       ├── LoadingSpinner.tsx
-│   │       ├── ErrorBoundary.tsx
-│   │       ├── SearchBar.tsx
-│   │       └── UserAvatar.tsx
+│   │   │   ├── MainLayout.tsx        # Main app layout
+│   │   │   ├── LeftSidebar.tsx       # Navigation sidebar
+│   │   │   ├── TopNavbar.tsx         # Top navigation
+│   │   │   ├── RightPanel.tsx        # Insights panel
+│   │   │   └── index.ts
+│   │   ├── chat/                     # Chat interface
+│   │   │   ├── ChatInterface.tsx     # Main chat component
+│   │   │   ├── MessageBubble.tsx     # Individual message
+│   │   │   ├── MessageInput.tsx      # Input component
+│   │   │   ├── TypingIndicator.tsx   # Typing animation
+│   │   │   ├── CommandHistory.tsx    # Command history
+│   │   │   ├── MessageThread.tsx     # Threaded messages
+│   │   │   └── index.ts
+│   │   ├── documents/                # Document management
+│   │   │   ├── DocumentManager.tsx   # Document list/management
+│   │   │   ├── DocumentUpload.tsx    # Upload component
+│   │   │   ├── DocumentViewer.tsx    # Document preview
+│   │   │   ├── DocumentSearch.tsx    # Search interface
+│   │   │   └── index.ts
+│   │   ├── auth/                     # Authentication components
+│   │   │   ├── LoginForm.tsx
+│   │   │   ├── RegisterForm.tsx
+│   │   │   ├── ForgotPasswordForm.tsx
+│   │   │   ├── ResetPasswordForm.tsx
+│   │   │   ├── ProtectedRoute.tsx
+│   │   │   └── index.ts
+│   │   └── integrations/             # Integration components
+│   │       ├── JiraIntegration.tsx   # Jira status updates
+│   │       ├── SlackIntegration.tsx  # Slack notifications
+│   │       ├── NotionIntegration.tsx # Notion sync
+│   │       └── index.ts
 │   │
-│   ├── core/                         # Core business logic
-│   │   ├── intent/                   # Intent detection
-│   │   │   ├── IntentDetector.ts
-│   │   │   ├── EntityExtractor.ts
-│   │   │   ├── CommandClassifier.ts
-│   │   │   └── types.ts
-│   │   ├── context/                  # Context management
-│   │   │   ├── ContextManager.ts
-│   │   │   ├── SessionManager.ts
-│   │   │   ├── MemoryStore.ts
-│   │   │   └── UserContext.ts
-│   │   ├── router/                   # Command routing
-│   │   │   ├── CommandRouter.ts
-│   │   │   ├── ActionDispatcher.ts
-│   │   │   ├── PermissionValidator.ts
-│   │   │   └── routes/
-│   │   │       ├── UpdateRoute.ts
-│   │   │       ├── QueryRoute.ts
-│   │   │       └── NotifyRoute.ts
-│   │   └── events/                   # Event handling
-│   │       ├── EventBus.ts
-│   │       ├── EventHandler.ts
-│   │       ├── WebhookProcessor.ts
-│   │       └── NotificationDispatcher.ts
+│   ├── lib/                          # Core Libraries
+│   │   ├── core/                     # Core business logic
+│   │   │   ├── intent-detection.ts   # Intent classification
+│   │   │   ├── context-manager.ts    # Context management
+│   │   │   ├── command-router.ts     # Command routing
+│   │   │   ├── memory-manager.ts     # Memory management
+│   │   │   └── event-bus.ts          # Event handling
+│   │   ├── rag/                      # RAG pipeline
+│   │   │   ├── document-processor.ts # Document processing
+│   │   │   ├── vector-store.ts       # Vector store operations
+│   │   │   ├── retriever.ts          # Document retrieval
+│   │   │   ├── generator.ts          # Response generation
+│   │   │   ├── grounding.ts          # Response grounding
+│   │   │   └── embeddings.ts         # Embedding generation
+│   │   ├── integrations/             # External integrations
+│   │   │   ├── jira/                 # Jira integration
+│   │   │   │   ├── client.ts
+│   │   │   │   ├── webhooks.ts
+│   │   │   │   └── types.ts
+│   │   │   ├── slack/                # Slack integration
+│   │   │   │   ├── client.ts
+│   │   │   │   ├── notifications.ts
+│   │   │   │   └── types.ts
+│   │   │   ├── notion/               # Notion integration
+│   │   │   │   ├── client.ts
+│   │   │   │   ├── sync.ts
+│   │   │   │   └── types.ts
+│   │   │   ├── confluence/           # Confluence integration
+│   │   │   │   ├── client.ts
+│   │   │   │   ├── sync.ts
+│   │   │   │   └── types.ts
+│   │   │   └── index.ts
+│   │   ├── security/                 # Security & Auth
+│   │   │   ├── auth.ts               # Authentication logic
+│   │   │   ├── permissions.ts        # Role-based permissions
+│   │   │   ├── encryption.ts         # Data encryption
+│   │   │   ├── audit-logger.ts       # Audit logging
+│   │   │   └── middleware.ts         # Security middleware
+│   │   ├── database/                 # Database operations
+│   │   │   ├── client.ts             # Prisma client
+│   │   │   ├── queries.ts            # Database queries
+│   │   │   ├── migrations.ts         # Migration helpers
+│   │   │   └── seed.ts               # Database seeding
+│   │   ├── ai/                       # AI/LLM operations
+│   │   │   ├── openai.ts             # OpenAI client
+│   │   │   ├── anthropic.ts          # Anthropic client
+│   │   │   ├── prompt-templates.ts   # Prompt templates
+│   │   │   └── response-formatter.ts # Response formatting
+│   │   ├── utils/                    # Utility functions
+│   │   │   ├── validation.ts         # Input validation
+│   │   │   ├── formatting.ts         # Text formatting
+│   │   │   ├── date-utils.ts         # Date utilities
+│   │   │   ├── file-utils.ts         # File operations
+│   │   │   └── constants.ts          # App constants
+│   │   └── types/                    # TypeScript types
+│   │       ├── auth.ts               # Auth types
+│   │       ├── chat.ts               # Chat types
+│   │       ├── documents.ts          # Document types
+│   │       ├── integrations.ts       # Integration types
+│   │       ├── rag.ts                # RAG types
+│   │       └── api.ts                # API types
 │   │
-│   ├── rag/                         # RAG pipeline
-│   │   ├── retrieval/               # Document retrieval
-│   │   │   ├── VectorStore.ts
-│   │   │   ├── DocumentRetriever.ts
-│   │   │   ├── SimilaritySearch.ts
-│   │   │   └── QueryProcessor.ts
-│   │   ├── generation/              # Response generation
-│   │   │   ├── ResponseGenerator.ts
-│   │   │   ├── ContextCombiner.ts
-│   │   │   ├── GroundingValidator.ts
-│   │   │   └── ProvenanceTracker.ts
-│   │   ├── indexing/                # Document indexing
-│   │   │   ├── DocumentProcessor.ts
-│   │   │   ├── ChunkingStrategy.ts
-│   │   │   ├── EmbeddingGenerator.ts
-│   │   │   └── IndexManager.ts
-│   │   └── knowledge/               # Knowledge base
-│   │       ├── DocumentRepository.ts
-│   │       ├── VersionManager.ts
-│   │       ├── SemanticTagger.ts
-│   │       └── MetadataExtractor.ts
+│   ├── hooks/                        # React Hooks
+│   │   ├── useAuth.ts                # Authentication hook
+│   │   ├── useChat.ts                # Chat functionality
+│   │   ├── useDocuments.ts           # Document management
+│   │   ├── useIntegrations.ts        # Integration hooks
+│   │   ├── useRAG.ts                 # RAG operations
+│   │   ├── useWebSocket.ts           # Real-time updates
+│   │   └── useApi.ts                 # API calls
 │   │
-│   ├── integrations/                # External integrations
-│   │   ├── jira/                    # Jira integration
-│   │   │   ├── JiraClient.ts
-│   │   │   ├── ProjectSync.ts
-│   │   │   ├── IssueTracker.ts
-│   │   │   └── WebhookHandler.ts
-│   │   ├── notion/                  # Notion integration
-│   │   │   ├── NotionClient.ts
-│   │   │   ├── PageSync.ts
-│   │   │   ├── DatabaseSync.ts
-│   │   │   └── ContentExtractor.ts
-│   │   ├── confluence/              # Confluence integration
-│   │   │   ├── ConfluenceClient.ts
-│   │   │   ├── SpaceSync.ts
-│   │   │   ├── PageProcessor.ts
-│   │   │   └── AttachmentHandler.ts
-│   │   ├── slack/                   # Slack integration
-│   │   │   ├── SlackClient.ts
-│   │   │   ├── MessageSync.ts
-│   │   │   ├── ChannelMonitor.ts
-│   │   │   └── BotHandler.ts
-│   │   ├── teams/                   # Microsoft Teams integration
-│   │   │   ├── TeamsClient.ts
-│   │   │   ├── ChatSync.ts
-│   │   │   ├── MeetingProcessor.ts
-│   │   │   └── NotificationSender.ts
-│   │   └── common/                  # Shared integration utilities
-│   │       ├── BaseClient.ts
-│   │       ├── RateLimiter.ts
-│   │       ├── RetryHandler.ts
-│   │       └── WebhookValidator.ts
+│   ├── contexts/                     # React Contexts
+│   │   ├── AuthContext.tsx           # Authentication context
+│   │   ├── ChatContext.tsx           # Chat state context
+│   │   ├── DocumentContext.tsx       # Document context
+│   │   ├── IntegrationContext.tsx    # Integration context
+│   │   └── ThemeContext.tsx          # Theme context
 │   │
-│   ├── security/                    # Security & access control
-│   │   ├── auth/                    # Authentication
-│   │   │   ├── AuthProvider.ts
-│   │   │   ├── SSOHandler.ts
-│   │   │   ├── TokenManager.ts
-│   │   │   └── SessionValidator.ts
-│   │   ├── permissions/             # Permission management
-│   │   │   ├── RoleManager.ts
-│   │   │   ├── PermissionMatrix.ts
-│   │   │   ├── AccessValidator.ts
-│   │   │   └── PolicyEngine.ts
-│   │   ├── encryption/              # Data encryption
-│   │   │   ├── EncryptionService.ts
-│   │   │   ├── KeyManager.ts
-│   │   │   ├── DataMasker.ts
-│   │   │   └── SecureStorage.ts
-│   │   └── audit/                   # Audit logging
-│   │       ├── AuditLogger.ts
-│   │       ├── EventTracker.ts
-│   │       ├── ComplianceChecker.ts
-│   │       └── ReportGenerator.ts
-│   │
-│   ├── lib/                         # Utility libraries
-│   │   ├── database/                # Database utilities
-│   │   │   ├── connection.ts
-│   │   │   ├── migrations/
-│   │   │   ├── models/
-│   │   │   └── queries/
-│   │   ├── cache/                   # Caching utilities
-│   │   │   ├── RedisClient.ts
-│   │   │   ├── CacheManager.ts
-│   │   │   └── InMemoryCache.ts
-│   │   ├── validation/              # Input validation
-│   │   │   ├── SchemaValidator.ts
-│   │   │   ├── Sanitizer.ts
-│   │   │   └── RateLimiter.ts
-│   │   ├── monitoring/              # Monitoring & logging
-│   │   │   ├── Logger.ts
-│   │   │   ├── MetricsCollector.ts
-│   │   │   ├── HealthChecker.ts
-│   │   │   └── AlertManager.ts
-│   │   └── utils/                   # General utilities
-│   │       ├── date.ts
-│   │       ├── string.ts
-│   │       ├── array.ts
-│   │       └── object.ts
-│   │
-│   ├── hooks/                       # React hooks
-│   │   ├── useAuth.ts
-│   │   ├── useChat.ts
-│   │   ├── useNotifications.ts
-│   │   ├── useWebSocket.ts
-│   │   ├── usePermissions.ts
-│   │   └── useDebounce.ts
-│   │
-│   ├── store/                       # State management
-│   │   ├── authStore.ts
-│   │   ├── chatStore.ts
-│   │   ├── notificationStore.ts
-│   │   ├── projectStore.ts
-│   │   └── index.ts
-│   │
-│   ├── types/                       # TypeScript types
-│   │   ├── auth.ts
-│   │   ├── chat.ts
-│   │   ├── integrations.ts
-│   │   ├── rag.ts
-│   │   ├── security.ts
-│   │   └── common.ts
-│   │
-│   └── styles/                      # Styling
-│       ├── globals.css
-│       ├── components.css
-│       ├── themes/
+│   └── styles/                       # Styling
+│       ├── globals.css               # Global styles
+│       ├── components.css            # Component styles
+│       ├── themes/                   # Theme definitions
 │       │   ├── light.css
 │       │   └── dark.css
-│       └── animations.css
+│       └── animations.css            # Animation styles
 │
-├── public/                          # Static assets
-│   ├── icons/
-│   ├── images/
-│   └── favicon.ico
+├── prisma/                           # Database schema
+│   ├── schema.prisma                 # Prisma schema
+│   ├── migrations/                   # Database migrations
+│   └── seed.ts                       # Seed data
 │
-├── docs/                           # Documentation
-│   ├── api/
-│   ├── architecture/
-│   ├── deployment/
-│   └── user-guide/
+├── public/                           # Static assets
+│   ├── images/                       # Images
+│   ├── icons/                        # Icons
+│   └── documents/                    # Document storage
 │
-├── tests/                          # Test files
-│   ├── unit/
-│   ├── integration/
-│   ├── e2e/
-│   └── fixtures/
+├── scripts/                          # Utility scripts
+│   ├── setup.js                      # Setup script
+│   ├── setup-db.sql                  # Database setup
+│   ├── migrate.js                    # Migration script
+│   └── seed.js                       # Seeding script
 │
-├── scripts/                        # Build and deployment scripts
-│   ├── build.sh
-│   ├── deploy.sh
-│   ├── migrate.sh
-│   └── seed.sh
+├── docs/                             # Documentation
+│   ├── api/                          # API documentation
+│   ├── architecture/                 # Architecture docs
+│   ├── deployment/                   # Deployment guides
+│   └── user-guide/                   # User documentation
 │
-├── docker/                         # Docker configuration
-│   ├── Dockerfile
-│   ├── docker-compose.yml
-│   └── docker-compose.prod.yml
+├── tests/                            # Test files
+│   ├── unit/                         # Unit tests
+│   ├── integration/                  # Integration tests
+│   ├── e2e/                          # End-to-end tests
+│   └── fixtures/                     # Test fixtures
 │
-├── .env.example
-├── .env.local
-├── .gitignore
-├── next.config.ts
-├── tailwind.config.ts
-├── tsconfig.json
-├── package.json
-└── README.md
+├── .env.example                      # Environment variables template
+├── .gitignore                        # Git ignore rules
+├── next.config.ts                    # Next.js configuration
+├── tailwind.config.ts                # Tailwind CSS configuration
+├── tsconfig.json                     # TypeScript configuration
+├── package.json                      # Dependencies
+└── README.md                         # Project documentation
 ```
 
-## Core Module Pseudocode
+## Core Module Descriptions
 
-### 1. Intent Detection Module
+### 1. UI Layer (`/src/components/`)
 
-```typescript
-// src/core/intent/IntentDetector.ts
-export class IntentDetector {
-  private classifier: MLClassifier;
-  private entityExtractor: EntityExtractor;
+**Purpose**: Provides the user interface for the AI Communication Hub
 
-  async detectIntent(userInput: string, context: UserContext): Promise<IntentResult> {
-    // 1. Preprocess input
-    const cleanedInput = this.preprocessInput(userInput);
-    
-    // 2. Extract entities
-    const entities = await this.entityExtractor.extract(cleanedInput);
-    
-    // 3. Classify intent
-    const intent = await this.classifier.classify(cleanedInput, context);
-    
-    // 4. Calculate confidence
-    const confidence = this.calculateConfidence(intent, entities);
-    
-    // 5. Validate against user permissions
-    const isValid = await this.validatePermissions(intent, context.user);
-    
-    return {
-      intent: intent.type,
-      entities,
-      confidence,
-      isValid,
-      suggestedActions: this.getSuggestedActions(intent, entities)
-    };
-  }
+**Key Components**:
+- **ChatInterface**: Main conversational interface with message threading
+- **LeftSidebar**: Team/project shortcuts and navigation
+- **RightPanel**: Real-time insights and notifications
+- **DocumentManager**: Document upload and management interface
 
-  private preprocessInput(input: string): string {
-    return input
-      .toLowerCase()
-      .trim()
-      .replace(/[^\w\s]/g, ' ')
-      .replace(/\s+/g, ' ');
-  }
+**Design Principles**:
+- White and purple theme for corporate environments
+- Minimal, clean design with low visual noise
+- Responsive layout for various screen sizes
+- Accessibility compliance (WCAG 2.1)
 
-  private calculateConfidence(intent: Intent, entities: Entity[]): number {
-    // Weighted confidence calculation based on:
-    // - Intent classification score
-    // - Entity extraction completeness
-    // - Context relevance
-    return (intent.score * 0.6) + (entities.completeness * 0.3) + (context.relevance * 0.1);
-  }
-}
+### 2. Core Logic Layer (`/src/lib/core/`)
+
+**Purpose**: Handles business logic, intent detection, and command routing
+
+**Key Modules**:
+- **intent-detection.ts**: Classifies user inputs (query, update, notify)
+- **context-manager.ts**: Manages conversation context and memory
+- **command-router.ts**: Routes commands to appropriate handlers
+- **event-bus.ts**: Handles event-driven updates
+
+**Responsibilities**:
+- Natural language understanding
+- Context preservation across conversations
+- Command validation and routing
+- Event processing and distribution
+
+### 3. RAG Pipeline (`/src/lib/rag/`)
+
+**Purpose**: Implements the Retrieval-Augmented Generation system
+
+**Key Modules**:
+- **document-processor.ts**: Processes and chunks documents
+- **vector-store.ts**: Manages vector embeddings and similarity search
+- **retriever.ts**: Retrieves relevant document chunks
+- **generator.ts**: Generates responses using LLM
+- **grounding.ts**: Ensures response accuracy and provenance
+
+**Features**:
+- Document ingestion and processing
+- Vector embedding generation
+- Semantic similarity search
+- Response generation with source attribution
+- Hallucination prevention
+
+### 4. Integration Layer (`/src/lib/integrations/`)
+
+**Purpose**: Connects with external tools and services
+
+**Supported Integrations**:
+- **Jira**: Project management and status updates
+- **Slack**: Team communication and notifications
+- **Notion**: Documentation and knowledge base
+- **Confluence**: Enterprise documentation
+- **Teams**: Microsoft Teams integration
+
+**Features**:
+- Real-time webhook processing
+- Bidirectional data synchronization
+- Error handling and retry logic
+- Rate limiting and API management
+
+### 5. Security Layer (`/src/lib/security/`)
+
+**Purpose**: Handles authentication, authorization, and data protection
+
+**Key Modules**:
+- **auth.ts**: Authentication and session management
+- **permissions.ts**: Role-based access control
+- **encryption.ts**: Data encryption and decryption
+- **audit-logger.ts**: Comprehensive audit logging
+
+**Security Features**:
+- SSO/OAuth2 integration
+- Multi-factor authentication
+- End-to-end encryption (AES-256)
+- Comprehensive audit trails
+- Role-based permissions
+
+### 6. Database Layer (`/src/lib/database/`)
+
+**Purpose**: Manages data persistence and retrieval
+
+**Technology Stack**:
+- **PostgreSQL**: Primary relational database
+- **Prisma**: ORM and database client
+- **Redis**: Caching and session storage
+- **Pinecone**: Vector database for embeddings
+
+**Features**:
+- Type-safe database operations
+- Automatic migrations
+- Connection pooling
+- Query optimization
+- Data validation
+
+## Data Flow Architecture
+
+```
+User Input → UI Layer → Core Logic → RAG Pipeline → Database Layer
+     ↓              ↓           ↓            ↓             ↓
+Intent Detection → Context → Document → Vector Store → Response
+     ↓              ↓           ↓            ↓             ↓
+Command Router → Memory → Retrieval → Generation → UI Update
+     ↓              ↓           ↓            ↓             ↓
+Integration → Event Bus → Grounding → Audit Log → User Feedback
 ```
 
-### 2. RAG Pipeline Module
+## Event-Driven Architecture
 
-```typescript
-// src/rag/retrieval/DocumentRetriever.ts
-export class DocumentRetriever {
-  private vectorStore: VectorStore;
-  private embeddingService: EmbeddingService;
+The system uses an event-driven architecture for real-time updates:
 
-  async retrieveRelevantDocuments(
-    query: string, 
-    context: QueryContext,
-    limit: number = 5
-  ): Promise<RetrievedDocument[]> {
-    // 1. Generate query embedding
-    const queryEmbedding = await this.embeddingService.embed(query);
-    
-    // 2. Perform similarity search
-    const similarChunks = await this.vectorStore.similaritySearch(
-      queryEmbedding,
-      {
-        limit,
-        filter: this.buildPermissionFilter(context.user),
-        includeMetadata: true
-      }
-    );
-    
-    // 3. Rank by relevance and recency
-    const rankedChunks = this.rankChunks(similarChunks, context);
-    
-    // 4. Group by document and deduplicate
-    const groupedDocs = this.groupByDocument(rankedChunks);
-    
-    // 5. Load full document context
-    const enrichedDocs = await this.enrichWithContext(groupedDocs);
-    
-    return enrichedDocs;
-  }
+1. **Event Sources**: User actions, external webhooks, system events
+2. **Event Bus**: Central event distribution system
+3. **Event Handlers**: Process specific event types
+4. **Event Sinks**: UI updates, notifications, audit logs
 
-  private buildPermissionFilter(user: User): Filter {
-    return {
-      department: { $in: user.departments },
-      accessLevel: { $lte: user.accessLevel },
-      isPublic: true
-    };
-  }
+## Scalability Considerations
 
-  private rankChunks(chunks: VectorChunk[], context: QueryContext): VectorChunk[] {
-    return chunks
-      .map(chunk => ({
-        ...chunk,
-        score: this.calculateRelevanceScore(chunk, context)
-      }))
-      .sort((a, b) => b.score - a.score);
-  }
+### Horizontal Scaling
+- Stateless API design
+- Load balancer distribution
+- Database read replicas
+- Redis clustering
 
-  private calculateRelevanceScore(chunk: VectorChunk, context: QueryContext): number {
-    const similarityScore = chunk.similarity;
-    const recencyScore = this.calculateRecencyScore(chunk.metadata.updatedAt);
-    const authorityScore = this.calculateAuthorityScore(chunk.metadata.source);
-    
-    return (similarityScore * 0.5) + (recencyScore * 0.3) + (authorityScore * 0.2);
-  }
-}
-```
+### Performance Optimization
+- Response caching
+- Database query optimization
+- CDN for static assets
+- Lazy loading for UI components
 
-### 3. Integration Module
+### Monitoring & Observability
+- Application metrics
+- Error tracking
+- Performance monitoring
+- User analytics
 
-```typescript
-// src/integrations/jira/JiraClient.ts
-export class JiraClient {
-  private apiClient: APIClient;
-  private rateLimiter: RateLimiter;
-  private retryHandler: RetryHandler;
+## Development Workflow
 
-  async updateProjectStatus(
-    projectKey: string, 
-    status: string, 
-    user: User
-  ): Promise<UpdateResult> {
-    try {
-      // 1. Validate permissions
-      await this.validateProjectAccess(projectKey, user);
-      
-      // 2. Get current project state
-      const project = await this.getProject(projectKey);
-      
-      // 3. Update status
-      const updateResult = await this.rateLimiter.execute(async () => {
-        return await this.apiClient.post(`/issue/${projectKey}/transitions`, {
-          transition: { name: status },
-          comment: {
-            body: `Status updated via AI Communication Hub by ${user.name}`
-          }
-        });
-      });
-      
-      // 4. Log audit trail
-      await this.auditLogger.log({
-        action: 'PROJECT_STATUS_UPDATE',
-        projectKey,
-        oldStatus: project.status,
-        newStatus: status,
-        userId: user.id,
-        timestamp: new Date()
-      });
-      
-      // 5. Trigger knowledge base update
-      await this.eventBus.emit('project.updated', {
-        projectKey,
-        changes: { status },
-        updatedBy: user.id
-      });
-      
-      return {
-        success: true,
-        projectKey,
-        newStatus: status,
-        updatedAt: new Date()
-      };
-      
-    } catch (error) {
-      await this.errorHandler.handle(error, { projectKey, status, user });
-      throw error;
-    }
-  }
+### Local Development
+1. Clone repository
+2. Install dependencies: `pnpm install`
+3. Set up environment variables
+4. Run database migrations: `pnpm db:push`
+5. Start development server: `pnpm dev`
 
-  private async validateProjectAccess(projectKey: string, user: User): Promise<void> {
-    const permissions = await this.permissionService.getProjectPermissions(projectKey, user.id);
-    
-    if (!permissions.canWrite) {
-      throw new PermissionError(`User ${user.id} does not have write access to project ${projectKey}`);
-    }
-  }
-}
-```
+### Testing Strategy
+- Unit tests for individual modules
+- Integration tests for API endpoints
+- E2E tests for user workflows
+- Performance tests for RAG pipeline
 
-### 4. Security Module
-
-```typescript
-// src/security/auth/AuthProvider.ts
-export class AuthProvider {
-  private ssoHandler: SSOHandler;
-  private tokenManager: TokenManager;
-  private sessionValidator: SessionValidator;
-
-  async authenticateUser(credentials: AuthCredentials): Promise<AuthResult> {
-    try {
-      // 1. Validate credentials with SSO
-      const ssoResult = await this.ssoHandler.authenticate(credentials);
-      
-      // 2. Generate JWT token
-      const token = await this.tokenManager.generateToken({
-        userId: ssoResult.user.id,
-        email: ssoResult.user.email,
-        roles: ssoResult.user.roles,
-        departments: ssoResult.user.departments
-      });
-      
-      // 3. Create session
-      const session = await this.createSession(ssoResult.user, token);
-      
-      // 4. Log authentication
-      await this.auditLogger.log({
-        action: 'USER_LOGIN',
-        userId: ssoResult.user.id,
-        timestamp: new Date(),
-        ipAddress: credentials.ipAddress
-      });
-      
-      return {
-        success: true,
-        user: ssoResult.user,
-        token,
-        sessionId: session.id,
-        expiresAt: session.expiresAt
-      };
-      
-    } catch (error) {
-      await this.auditLogger.log({
-        action: 'LOGIN_FAILED',
-        email: credentials.email,
-        error: error.message,
-        timestamp: new Date()
-      });
-      throw error;
-    }
-  }
-
-  async validateSession(sessionId: string): Promise<SessionValidationResult> {
-    const session = await this.sessionValidator.validate(sessionId);
-    
-    if (!session.isValid) {
-      return { isValid: false, reason: session.reason };
-    }
-    
-    // Refresh session if needed
-    if (session.needsRefresh) {
-      await this.refreshSession(sessionId);
-    }
-    
-    return {
-      isValid: true,
-      user: session.user,
-      permissions: await this.getUserPermissions(session.user.id)
-    };
-  }
-}
-```
-
-## API Structure
-
-### REST API Endpoints
-
-```typescript
-// src/app/api/chat/route.ts
-export async function POST(request: Request) {
-  const { message, context } = await request.json();
-  
-  // 1. Authenticate user
-  const user = await authProvider.authenticateRequest(request);
-  
-  // 2. Detect intent
-  const intent = await intentDetector.detectIntent(message, user.context);
-  
-  // 3. Route command
-  const result = await commandRouter.route(intent, user);
-  
-  // 4. Generate response
-  const response = await responseGenerator.generate(result, user);
-  
-  return Response.json(response);
-}
-
-// src/app/api/integrations/jira/webhook/route.ts
-export async function POST(request: Request) {
-  const payload = await request.json();
-  
-  // 1. Validate webhook signature
-  const isValid = await webhookValidator.validate(request, payload);
-  if (!isValid) {
-    return Response.json({ error: 'Invalid signature' }, { status: 401 });
-  }
-  
-  // 2. Process webhook
-  await webhookProcessor.process('jira', payload);
-  
-  return Response.json({ success: true });
-}
-```
-
-## Database Schema
-
-```sql
--- Users and Authentication
-CREATE TABLE users (
-  id UUID PRIMARY KEY,
-  email VARCHAR(255) UNIQUE NOT NULL,
-  name VARCHAR(255) NOT NULL,
-  department VARCHAR(100),
-  role VARCHAR(50),
-  access_level INTEGER DEFAULT 1,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- Chat Sessions
-CREATE TABLE chat_sessions (
-  id UUID PRIMARY KEY,
-  user_id UUID REFERENCES users(id),
-  title VARCHAR(255),
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- Messages
-CREATE TABLE messages (
-  id UUID PRIMARY KEY,
-  session_id UUID REFERENCES chat_sessions(id),
-  content TEXT NOT NULL,
-  role VARCHAR(20) NOT NULL, -- 'user' or 'assistant'
-  metadata JSONB,
-  created_at TIMESTAMP DEFAULT NOW()
-);
-
--- Knowledge Base Documents
-CREATE TABLE documents (
-  id UUID PRIMARY KEY,
-  title VARCHAR(500) NOT NULL,
-  content TEXT NOT NULL,
-  source VARCHAR(255),
-  document_type VARCHAR(100),
-  department VARCHAR(100),
-  access_level INTEGER DEFAULT 1,
-  version INTEGER DEFAULT 1,
-  embedding VECTOR(1536), -- For vector similarity search
-  metadata JSONB,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- Integration Configurations
-CREATE TABLE integration_configs (
-  id UUID PRIMARY KEY,
-  integration_type VARCHAR(50) NOT NULL,
-  config JSONB NOT NULL,
-  is_active BOOLEAN DEFAULT true,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- Audit Logs
-CREATE TABLE audit_logs (
-  id UUID PRIMARY KEY,
-  user_id UUID REFERENCES users(id),
-  action VARCHAR(100) NOT NULL,
-  resource_type VARCHAR(50),
-  resource_id UUID,
-  details JSONB,
-  ip_address INET,
-  user_agent TEXT,
-  created_at TIMESTAMP DEFAULT NOW()
-);
-```
-
-This modular architecture provides:
-
-1. **Separation of Concerns**: Each module has a specific responsibility
-2. **Scalability**: Modules can be scaled independently
-3. **Maintainability**: Clear boundaries and interfaces
-4. **Testability**: Each module can be unit tested
-5. **Extensibility**: New integrations and features can be added easily
-6. **Security**: Centralized security and permission management
-7. **Performance**: Optimized for fast retrieval and response generation
+### Deployment Pipeline
+- Automated testing on PR
+- Staging environment validation
+- Production deployment with rollback capability
+- Database migration automation

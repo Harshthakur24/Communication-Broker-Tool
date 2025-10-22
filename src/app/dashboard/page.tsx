@@ -4,6 +4,8 @@ import React, { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { LoadingSpinner } from '@/components/ui'
+import MainLayout from '@/components/layout/MainLayout'
+import EnhancedChatInterface from '@/components/chat/EnhancedChatInterface'
 
 export default function DashboardPage() {
     const { user, loading } = useAuth()
@@ -30,17 +32,11 @@ export default function DashboardPage() {
         return null
     }
 
-    // Redirect to main app
-    useEffect(() => {
-        router.push('/')
-    }, [router])
-
     return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50 flex items-center justify-center">
-            <div className="text-center">
-                <LoadingSpinner size="lg" className="mx-auto mb-4" />
-                <p className="text-gray-600">Redirecting to main app...</p>
+        <MainLayout>
+            <div className="h-full">
+                <EnhancedChatInterface className="h-full" />
             </div>
-        </div>
+        </MainLayout>
     )
 }
