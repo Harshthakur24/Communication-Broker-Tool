@@ -5,6 +5,79 @@ A private, intelligent, always-updated communication broker that replaces intern
 
 ## System Architecture Diagram
 
+```mermaid
+flowchart LR
+  %% UI Layer
+  subgraph UI[User Interface Layer]
+    WebApp[Web App (Next.js, React)]
+    ChatBots[Slack/Teams Bots]
+    InternalPortals[Internal Tools/Dashboards]
+  end
+
+  %% Processing & Logic Layer
+  subgraph Logic[Processing & Logic Layer (API Routes/Server)]
+    Intent[Intent Detection]
+    Ctx[Context Manager]
+    Router[Command Router]
+    Perms[RBAC Permission Validator]
+    Bus[(Event Bus)]
+  end
+
+  %% RAG Engine
+  subgraph RAG[RAG Engine]
+    Retriever[Retriever]
+    Generator[Response Generator]
+    Grounder[Grounding Validator]
+  end
+
+  %% Knowledge Base Layer
+  subgraph KB[Knowledge Base Layer]
+    PG[(PostgreSQL via Prisma)]
+    VectorDB[(Vector Index: pgvector | Pinecone | Milvus | FAISS)]
+    Repo[(Document Repository)]
+  end
+
+  %% Integrations
+  subgraph Integrations[Integration Layer]
+    Jira[Jira]
+    Notion[Notion]
+    Confluence[Confluence]
+    Slack[Slack/Teams]
+    HRIT[HR/IT Systems]
+  end
+
+  %% Security & Access Control
+  subgraph Security[Security & Access Control]
+    SSO[SSO/OAuth2]
+    Audit[Audit Logs]
+    TLS[TLS 1.3 / AES-256]
+  end
+
+  %% Flows
+  UI -->|HTTPS/WebSocket| Logic
+  Logic -->|Classify/Route| Intent
+  Logic --> Ctx
+  Logic --> Perms
+  Logic -->|Query| RAG
+  RAG -->|Similarity Search| VectorDB
+  RAG -->|Fetch metadata/content| PG
+  RAG --> Generator
+  Generator --> Grounder
+  Logic -->|Read/Write| PG
+  Logic -->|API Calls| Integrations
+  Integrations -->|Webhooks| Logic
+  Logic <-->|Publish/Subscribe| Bus
+  Bus -->|Triggers| KB
+  Bus -->|Re-index| VectorDB
+  Logic -->|Response| UI
+
+  %% Security overlays (conceptual links)
+  Security -. protects .- UI
+  Security -. protects .- Logic
+  Security -. protects .- KB
+  Security -. monitors .- Integrations
+```
+
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────┐
 │                                USER INTERFACE LAYER                            │

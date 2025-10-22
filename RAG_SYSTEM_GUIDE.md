@@ -2,7 +2,7 @@
 
 ## 🚀 **Complete RAG (Retrieval-Augmented Generation) System**
 
-Your AI Communication Hub now includes a fully functional RAG system that enables intelligent document search and AI-powered responses based on your company's knowledge base.
+Your AI Communication Hub now includes a fully functional RAG system that enables intelligent document search and AI-powered responses based on your company's knowledge base, backed by PostgreSQL via Prisma. Optional pgvector or an external vector database (Pinecone/Milvus/FAISS) can be used for similarity search at scale.
 
 ## 📋 **What's Been Implemented**
 
@@ -44,12 +44,21 @@ Add to your `.env.local` file:
 OPENAI_API_KEY="your_openai_api_key_here"
 ```
 
-### 2. **Database Setup**
-The database schema has been updated. Run:
+### 2. **Database Setup (PostgreSQL + Prisma)**
+Initialize Prisma client and apply schema:
 ```bash
-pnpm db:push
 pnpm db:generate
+pnpm db:push
 ```
+
+Optional: enable pgvector for native vector search in Postgres:
+```sql
+CREATE EXTENSION IF NOT EXISTS vector;
+ALTER TABLE document_chunks ADD COLUMN IF NOT EXISTS embedding_vec vector(1536);
+CREATE INDEX IF NOT EXISTS document_chunks_embedding_idx
+  ON document_chunks USING ivfflat (embedding_vec vector_cosine_ops) WITH (lists = 100);
+```
+If you prefer a managed vector store (Pinecone/Milvus), keep Prisma/Postgres for metadata and use the external index for similarity search.
 
 ### 3. **Install Dependencies**
 All required packages are already installed:
@@ -93,10 +102,10 @@ All required packages are already installed:
 - **File Size Limit**: 10MB per file
 
 ### **AI Responses**
-- **Context-Aware**: Uses relevant documents to generate responses
-- **Source Citations**: Shows which documents were referenced
-- **Fallback Mode**: Works even without relevant documents
-- **Professional Tone**: Maintains company communication standards
+- Context-aware and grounded in retrieved content
+- Source citations with provenance labels (e.g., HR_Policy_v3.pdf)
+- Permission-aware: filters by user RBAC before generation
+- Professional tone: concise, actionable
 
 ## 📊 **API Endpoints**
 
@@ -109,6 +118,23 @@ All required packages are already installed:
 ### **Chat System**
 - `GET /api/chat/messages` - Get chat history
 - `POST /api/chat/messages` - Send message and get AI response
+
+Request handling outline:
+```mermaid
+sequenceDiagram
+  participant C as Client
+  participant A as API /chat/messages
+  participant R as RAG Engine
+  participant V as Vector Index
+  participant D as Postgres
+  C->>A: message, sessionId
+  A->>A: auth + RBAC check
+  A->>R: detect intent + build query
+  R->>V: top-k by similarity
+  R->>D: hydrate docs and metadata
+  R-->>A: grounded context
+  A-->>C: response + sources
+```
 
 ## 🛠 **Technical Architecture**
 
@@ -125,10 +151,12 @@ All required packages are already installed:
 4. **Response** → Return answer with sources
 
 ### **Search Process**
-1. **Query Embedding** → Convert user question to vector
-2. **Similarity Search** → Find matching document chunks
-3. **Ranking** → Sort by relevance score
-4. **Context Building** → Prepare context for AI
+1. Query embedding → Convert user question to vector
+2. Similarity search:
+   - Postgres (pgvector): `SELECT id, content FROM document_chunks ORDER BY embedding_vec <=> $1 LIMIT k;`
+   - External vector DB: use respective SDK
+3. Ranking → Combine similarity, recency, and authority
+4. Context building → Deduplicate, enforce RBAC filters, build context window
 
 ## 🎨 **UI Components**
 
@@ -153,23 +181,27 @@ All required packages are already installed:
 ## 🔒 **Security Features**
 
 - **Authentication Required**: All endpoints protected
-- **User Permissions**: Users can only manage their own documents
+- **User Permissions**: Role-based access and document-level ACLs
 - **File Validation**: Only allowed file types accepted
 - **Size Limits**: Prevents large file uploads
+
+### Audit Logging
+- Every query, change, and integration call writes an immutable audit record in Postgres with user, action, resource, and timestamp.
 
 ## 📈 **Performance Optimizations**
 
 - **Chunking Strategy**: Optimal chunk sizes for better retrieval
-- **Embedding Caching**: Reuse embeddings when possible
+- **Embedding Caching**: Reuse embeddings when content hash unchanged
 - **Pagination**: Efficient document listing
 - **Fallback Search**: Text search when vector search fails
+ - **Vector Indexing**: Use IVFFlat/HNSW (pgvector ≥ 0.5) with tuned lists/ef
 
 ## 🚀 **Future Enhancements**
 
 ### **Planned Features**
 - **Pinecone Integration**: External vector database for scaling
 - **Advanced Analytics**: Usage statistics and insights
-- **Document Versioning**: Track document changes
+- **Document Versioning**: Track document changes with provenance and rollback
 - **Collaborative Features**: Team document management
 - **API Rate Limiting**: Prevent abuse
 - **Caching Layer**: Redis for better performance

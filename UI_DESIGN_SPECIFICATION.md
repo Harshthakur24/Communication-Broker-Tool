@@ -38,6 +38,11 @@
 }
 ```
 
+### Theme usage
+- Primary actions use `--purple-600` with hover `--purple-700`.
+- Surface backgrounds: `--white` and `--gray-50`; avoid heavy borders.
+- Accents for insights/labels use `--purple-400`/`--purple-500`.
+
 ### Typography
 ```css
 /* Font Stack */
@@ -94,6 +99,26 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+```
+
+### Message Tagging and Metadata
+
+```typescript
+// Suggested type
+type MessageTag = {
+  id: string
+  label: string // e.g., "policy", "jira", "hr"
+  color?: string // hex, defaults to purple accent
+}
+
+// Usage inside message bubble metadata row
+<div className="flex flex-wrap gap-1">
+  {message.tags?.map(t => (
+    <span key={t.id} className="px-2 py-0.5 text-xs rounded-full bg-purple-100 text-purple-700">
+      {t.label}
+    </span>
+  ))}
+</div>
 ```
 
 ### Left Sidebar Component
@@ -252,6 +277,14 @@ export function ChatInterface() {
 }
 ```
 
+### Suggested UI Components
+- Chat bubble cards with markdown rendering and provenance chips
+- Top navbar with global search, quick actions, and user menu
+- Notification drawer with grouped updates (projects, policies, messages)
+- Context sidebar showing active project, team, and filters
+- Typing indicator with subtle motion, 200–300ms delay
+- Toasts for confirmations and non-blocking errors
+
 ### Message Bubble Component
 
 ```typescript
@@ -364,6 +397,15 @@ export function RightPanel() {
   );
 }
 ```
+
+## Interaction details
+- Keyboard: Enter to send, Shift+Enter newline; Cmd/Ctrl+K focus global search.
+- Animations: Use reduced-motion respect via `prefers-reduced-motion`.
+- Accessibility: All interactive elements have visible focus and ARIA labels.
+
+## Empty states and loading
+- Empty chat shows suggested prompts.
+- Insights panel shows skeleton cards while loading.
 
 ## Component Library
 

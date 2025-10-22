@@ -1,249 +1,65 @@
 # Modular Architecture Structure
 
-## Project Structure
+## Project Structure (modular)
 
-```
-communication-broker-tool/
+```text
+ai-communication-hub/
 ├── src/
-│   ├── app/                          # Next.js App Router
-│   │   ├── (auth)/                   # Auth route group
-│   │   │   ├── login/
-│   │   │   └── callback/
-│   │   ├── (dashboard)/              # Protected dashboard routes
+│   ├── ui/                         # Frontend UI (Next.js/React)
+│   │   ├── components/
 │   │   │   ├── chat/
-│   │   │   ├── projects/
-│   │   │   ├── settings/
-│   │   │   └── admin/
-│   │   ├── api/                      # API routes
-│   │   │   ├── auth/
-│   │   │   ├── chat/
-│   │   │   ├── integrations/
-│   │   │   ├── rag/
-│   │   │   └── webhooks/
-│   │   ├── globals.css
-│   │   ├── layout.tsx
-│   │   └── page.tsx
+│   │   │   ├── layout/
+│   │   │   ├── ui/
+│   │   │   └── insights/
+│   │   ├── pages_or_app/
+│   │   └── styles/
 │   │
-│   ├── components/                   # UI Components
-│   │   ├── ui/                       # Base UI components
-│   │   │   ├── button.tsx
-│   │   │   ├── input.tsx
-│   │   │   ├── card.tsx
-│   │   │   ├── modal.tsx
-│   │   │   └── index.ts
-│   │   ├── chat/                     # Chat-specific components
-│   │   │   ├── ChatInterface.tsx
-│   │   │   ├── MessageBubble.tsx
-│   │   │   ├── MessageInput.tsx
-│   │   │   ├── TypingIndicator.tsx
-│   │   │   └── ChatHistory.tsx
-│   │   ├── layout/                   # Layout components
-│   │   │   ├── Sidebar.tsx
-│   │   │   ├── TopNavbar.tsx
-│   │   │   ├── NotificationDrawer.tsx
-│   │   │   └── ContextSidebar.tsx
-│   │   ├── dashboard/                # Dashboard components
-│   │   │   ├── ProjectCard.tsx
-│   │   │   ├── StatusIndicator.tsx
-│   │   │   ├── InsightPanel.tsx
-│   │   │   └── ActivityFeed.tsx
-│   │   └── common/                   # Shared components
-│   │       ├── LoadingSpinner.tsx
-│   │       ├── ErrorBoundary.tsx
-│   │       ├── SearchBar.tsx
-│   │       └── UserAvatar.tsx
+│   ├── core/                       # Core runtime logic
+│   │   ├── intent/
+│   │   ├── context/
+│   │   ├── router/
+│   │   └── events/
 │   │
-│   ├── core/                         # Core business logic
-│   │   ├── intent/                   # Intent detection
-│   │   │   ├── IntentDetector.ts
-│   │   │   ├── EntityExtractor.ts
-│   │   │   ├── CommandClassifier.ts
-│   │   │   └── types.ts
-│   │   ├── context/                  # Context management
-│   │   │   ├── ContextManager.ts
-│   │   │   ├── SessionManager.ts
-│   │   │   ├── MemoryStore.ts
-│   │   │   └── UserContext.ts
-│   │   ├── router/                   # Command routing
-│   │   │   ├── CommandRouter.ts
-│   │   │   ├── ActionDispatcher.ts
-│   │   │   ├── PermissionValidator.ts
-│   │   │   └── routes/
-│   │   │       ├── UpdateRoute.ts
-│   │   │       ├── QueryRoute.ts
-│   │   │       └── NotifyRoute.ts
-│   │   └── events/                   # Event handling
-│   │       ├── EventBus.ts
-│   │       ├── EventHandler.ts
-│   │       ├── WebhookProcessor.ts
-│   │       └── NotificationDispatcher.ts
+│   ├── rag/                        # RAG pipeline
+│   │   ├── retrieval/
+│   │   ├── generation/
+│   │   ├── indexing/
+│   │   └── knowledge/
 │   │
-│   ├── rag/                         # RAG pipeline
-│   │   ├── retrieval/               # Document retrieval
-│   │   │   ├── VectorStore.ts
-│   │   │   ├── DocumentRetriever.ts
-│   │   │   ├── SimilaritySearch.ts
-│   │   │   └── QueryProcessor.ts
-│   │   ├── generation/              # Response generation
-│   │   │   ├── ResponseGenerator.ts
-│   │   │   ├── ContextCombiner.ts
-│   │   │   ├── GroundingValidator.ts
-│   │   │   └── ProvenanceTracker.ts
-│   │   ├── indexing/                # Document indexing
-│   │   │   ├── DocumentProcessor.ts
-│   │   │   ├── ChunkingStrategy.ts
-│   │   │   ├── EmbeddingGenerator.ts
-│   │   │   └── IndexManager.ts
-│   │   └── knowledge/               # Knowledge base
-│   │       ├── DocumentRepository.ts
-│   │       ├── VersionManager.ts
-│   │       ├── SemanticTagger.ts
-│   │       └── MetadataExtractor.ts
+│   ├── integrations/               # External systems
+│   │   ├── jira/
+│   │   ├── notion/
+│   │   ├── confluence/
+│   │   ├── slack/
+│   │   ├── teams/
+│   │   └── common/
 │   │
-│   ├── integrations/                # External integrations
-│   │   ├── jira/                    # Jira integration
-│   │   │   ├── JiraClient.ts
-│   │   │   ├── ProjectSync.ts
-│   │   │   ├── IssueTracker.ts
-│   │   │   └── WebhookHandler.ts
-│   │   ├── notion/                  # Notion integration
-│   │   │   ├── NotionClient.ts
-│   │   │   ├── PageSync.ts
-│   │   │   ├── DatabaseSync.ts
-│   │   │   └── ContentExtractor.ts
-│   │   ├── confluence/              # Confluence integration
-│   │   │   ├── ConfluenceClient.ts
-│   │   │   ├── SpaceSync.ts
-│   │   │   ├── PageProcessor.ts
-│   │   │   └── AttachmentHandler.ts
-│   │   ├── slack/                   # Slack integration
-│   │   │   ├── SlackClient.ts
-│   │   │   ├── MessageSync.ts
-│   │   │   ├── ChannelMonitor.ts
-│   │   │   └── BotHandler.ts
-│   │   ├── teams/                   # Microsoft Teams integration
-│   │   │   ├── TeamsClient.ts
-│   │   │   ├── ChatSync.ts
-│   │   │   ├── MeetingProcessor.ts
-│   │   │   └── NotificationSender.ts
-│   │   └── common/                  # Shared integration utilities
-│   │       ├── BaseClient.ts
-│   │       ├── RateLimiter.ts
-│   │       ├── RetryHandler.ts
-│   │       └── WebhookValidator.ts
+│   ├── security/                   # Security & access control
+│   │   ├── auth/
+│   │   ├── permissions/
+│   │   ├── encryption/
+│   │   └── audit/
 │   │
-│   ├── security/                    # Security & access control
-│   │   ├── auth/                    # Authentication
-│   │   │   ├── AuthProvider.ts
-│   │   │   ├── SSOHandler.ts
-│   │   │   ├── TokenManager.ts
-│   │   │   └── SessionValidator.ts
-│   │   ├── permissions/             # Permission management
-│   │   │   ├── RoleManager.ts
-│   │   │   ├── PermissionMatrix.ts
-│   │   │   ├── AccessValidator.ts
-│   │   │   └── PolicyEngine.ts
-│   │   ├── encryption/              # Data encryption
-│   │   │   ├── EncryptionService.ts
-│   │   │   ├── KeyManager.ts
-│   │   │   ├── DataMasker.ts
-│   │   │   └── SecureStorage.ts
-│   │   └── audit/                   # Audit logging
-│   │       ├── AuditLogger.ts
-│   │       ├── EventTracker.ts
-│   │       ├── ComplianceChecker.ts
-│   │       └── ReportGenerator.ts
+│   ├── api/                        # API route handlers (Next.js)
+│   │   ├── auth/
+│   │   ├── chat/
+│   │   ├── documents/
+│   │   ├── users/
+│   │   └── webhooks/
 │   │
-│   ├── lib/                         # Utility libraries
-│   │   ├── database/                # Database utilities
-│   │   │   ├── connection.ts
-│   │   │   ├── migrations/
-│   │   │   ├── models/
-│   │   │   └── queries/
-│   │   ├── cache/                   # Caching utilities
-│   │   │   ├── RedisClient.ts
-│   │   │   ├── CacheManager.ts
-│   │   │   └── InMemoryCache.ts
-│   │   ├── validation/              # Input validation
-│   │   │   ├── SchemaValidator.ts
-│   │   │   ├── Sanitizer.ts
-│   │   │   └── RateLimiter.ts
-│   │   ├── monitoring/              # Monitoring & logging
-│   │   │   ├── Logger.ts
-│   │   │   ├── MetricsCollector.ts
-│   │   │   ├── HealthChecker.ts
-│   │   │   └── AlertManager.ts
-│   │   └── utils/                   # General utilities
-│   │       ├── date.ts
-│   │       ├── string.ts
-│   │       ├── array.ts
-│   │       └── object.ts
-│   │
-│   ├── hooks/                       # React hooks
-│   │   ├── useAuth.ts
-│   │   ├── useChat.ts
-│   │   ├── useNotifications.ts
-│   │   ├── useWebSocket.ts
-│   │   ├── usePermissions.ts
-│   │   └── useDebounce.ts
-│   │
-│   ├── store/                       # State management
-│   │   ├── authStore.ts
-│   │   ├── chatStore.ts
-│   │   ├── notificationStore.ts
-│   │   ├── projectStore.ts
-│   │   └── index.ts
-│   │
-│   ├── types/                       # TypeScript types
-│   │   ├── auth.ts
-│   │   ├── chat.ts
-│   │   ├── integrations.ts
-│   │   ├── rag.ts
-│   │   ├── security.ts
-│   │   └── common.ts
-│   │
-│   └── styles/                      # Styling
-│       ├── globals.css
-│       ├── components.css
-│       ├── themes/
-│       │   ├── light.css
-│       │   └── dark.css
-│       └── animations.css
+│   └── lib/                        # Shared libs: db, cache, utils
+│       ├── db/
+│       │   ├── client.ts           # Prisma client
+│       │   ├── repositories/       # e.g., ChatRepo, DocRepo
+│       │   └── migrations/
+│       ├── cache/
+│       ├── logging/
+│       └── utils/
 │
-├── public/                          # Static assets
-│   ├── icons/
-│   ├── images/
-│   └── favicon.ico
-│
-├── docs/                           # Documentation
-│   ├── api/
-│   ├── architecture/
-│   ├── deployment/
-│   └── user-guide/
-│
-├── tests/                          # Test files
-│   ├── unit/
-│   ├── integration/
-│   ├── e2e/
-│   └── fixtures/
-│
-├── scripts/                        # Build and deployment scripts
-│   ├── build.sh
-│   ├── deploy.sh
-│   ├── migrate.sh
-│   └── seed.sh
-│
-├── docker/                         # Docker configuration
-│   ├── Dockerfile
-│   ├── docker-compose.yml
-│   └── docker-compose.prod.yml
-│
-├── .env.example
-├── .env.local
-├── .gitignore
-├── next.config.ts
-├── tailwind.config.ts
-├── tsconfig.json
+├── prisma/
+│   └── schema.prisma
+├── public/
+├── scripts/
 ├── package.json
 └── README.md
 ```
@@ -297,6 +113,42 @@ export class IntentDetector {
     // - Entity extraction completeness
     // - Context relevance
     return (intent.score * 0.6) + (entities.completeness * 0.3) + (context.relevance * 0.1);
+  }
+}
+```
+
+### Command Router (linking modules)
+
+```typescript
+// src/core/router/CommandRouter.ts
+export class CommandRouter {
+  constructor(
+    private readonly permissionValidator: PermissionValidator,
+    private readonly jiraClient: JiraClient,
+    private readonly retriever: DocumentRetriever,
+    private readonly responseGenerator: ResponseGenerator,
+  ) {}
+
+  async route(intent: IntentResult, context: UserContext) {
+    await this.permissionValidator.ensure(intent, context.user);
+
+    if (intent.intent === 'QUERY') {
+      const docs = await this.retriever.retrieveRelevantDocuments(intent.normalizedQuery, { user: context.user });
+      return this.responseGenerator.generate(docs, intent);
+    }
+
+    if (intent.intent === 'UPDATE') {
+      // Example: project status update routed to Jira
+      await this.jiraClient.updateProjectStatus(intent.entities.projectKey, intent.entities.status, context.user);
+      return { type: 'CONFIRMATION', message: 'Project marked as In Progress', provenance: ['Jira'] };
+    }
+
+    if (intent.intent === 'NOTIFY') {
+      // publish to event bus (omitted)
+      return { type: 'NOTIFICATION', message: 'Notification scheduled' };
+    }
+
+    return { type: 'CHAT', message: 'How can I help?' };
   }
 }
 ```
