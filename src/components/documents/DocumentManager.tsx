@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
     Search,
@@ -62,7 +62,7 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ className }) =
         { value: 'uploadedBy', label: 'Uploaded By' },
     ]
 
-    const fetchDocuments = async () => {
+    const fetchDocuments = useCallback(async () => {
         try {
             setLoading(true)
             const params = new URLSearchParams({
@@ -88,11 +88,11 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({ className }) =
         } finally {
             setLoading(false)
         }
-    }
+    }, [currentPage, searchQuery, selectedCategory, sortBy, sortOrder, showToast])
 
     useEffect(() => {
         fetchDocuments()
-    }, [currentPage, searchQuery, selectedCategory, sortBy, sortOrder])
+    }, [fetchDocuments])
 
     const handleDelete = async (documentId: string) => {
         if (!confirm('Are you sure you want to delete this document?')) return

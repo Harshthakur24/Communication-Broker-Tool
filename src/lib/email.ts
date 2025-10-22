@@ -1,14 +1,21 @@
 import nodemailer from 'nodemailer'
 
-const transporter = nodemailer.createTransporter({
-  host: process.env.EMAIL_HOST,
-  port: parseInt(process.env.EMAIL_PORT || '587'),
-  secure: false, // true for 465, false for other ports
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-})
+let transporter: nodemailer.Transporter | null = null
+
+const getTransporter = () => {
+  if (!transporter) {
+    transporter = nodemailer.createTransporter({
+      host: process.env.EMAIL_HOST || 'smtp.example.com',
+      port: parseInt(process.env.EMAIL_PORT || '587'),
+      secure: false, // true for 465, false for other ports
+      auth: {
+        user: process.env.EMAIL_USER || 'user@example.com',
+        pass: process.env.EMAIL_PASS || 'password',
+      },
+    })
+  }
+  return transporter
+}
 
 export interface EmailOptions {
   to: string
@@ -27,7 +34,7 @@ export const sendEmail = async (options: EmailOptions): Promise<boolean> => {
       text: options.text,
     }
 
-    const result = await transporter.sendMail(mailOptions)
+    const result = await getTransporter().sendMail(mailOptions)
     console.log('Email sent successfully:', result.messageId)
     return true
   } catch (error) {

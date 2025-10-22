@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
       const offset = parseInt(searchParams.get('offset') || '0')
       const limit = parseInt(searchParams.get('limit') || '20')
 
-      let messages = []
+      let messages: any[] = []
 
       if (sessionId) {
         // Get messages from specific session
@@ -166,11 +166,11 @@ export async function POST(request: NextRequest) {
           sessionId: chatSession.id,
           type: 'assistant',
           content: aiResponse,
-          sources: sources.length > 0 ? JSON.stringify(sources) : null,
+          sources: sources.length > 0 ? JSON.stringify(sources) : undefined,
           metadata: ragContext ? {
             totalResults: ragContext.totalResults,
             query: ragContext.query,
-          } : null,
+          } : undefined,
         },
       })
 

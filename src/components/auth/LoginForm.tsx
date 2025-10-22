@@ -58,116 +58,109 @@ export const LoginForm: React.FC<LoginFormProps> = ({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
-            className={cn('w-full max-w-md mx-auto', className)}
+            className={cn('w-full', className)}
         >
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 p-8">
-                <div className="text-center mb-8">
-                    <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-purple-700 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                        <Lock className="w-8 h-8 text-white" />
-                    </div>
-                    <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent">
-                        Welcome Back
-                    </h2>
-                    <p className="text-gray-600 mt-2">Sign in to your AI Communication Hub</p>
+            <div className="text-center mb-8">
+                <div className="w-20 h-20 bg-gradient-to-br from-purple-600 to-purple-700 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                    <Lock className="w-10 h-10 text-white" />
+                </div>
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent mb-3">
+                    Welcome Back
+                </h2>
+                <p className="text-gray-600">Sign in to your AI Communication Hub</p>
+            </div>
+
+            {error && (
+                <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center space-x-3"
+                >
+                    <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+                    <p className="text-red-700 text-sm">{error}</p>
+                </motion.div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+                <div>
+                    <Input
+                        type="email"
+                        name="email"
+                        placeholder="Enter your email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        required
+                        disabled={isLoading}
+                        className="h-12 px-4 bg-white border-gray-200 rounded-xl text-base placeholder:text-gray-400"
+                    />
                 </div>
 
-                {error && (
-                    <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center space-x-3"
-                    >
-                        <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
-                        <p className="text-red-700 text-sm">{error}</p>
-                    </motion.div>
-                )}
-
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div>
+                <div>
+                    <div className="relative">
                         <Input
-                            type="email"
-                            name="email"
-                            label="Email Address"
-                            placeholder="Enter your email"
-                            value={formData.email}
+                            type={showPassword ? 'text' : 'password'}
+                            name="password"
+                            placeholder="Enter your password"
+                            value={formData.password}
                             onChange={handleInputChange}
                             required
                             disabled={isLoading}
-                            className="pl-10"
-                            icon={<Mail className="w-4 h-4 text-gray-400" />}
+                            className="h-12 px-4 pr-12 bg-white border-gray-200 rounded-xl text-base placeholder:text-gray-400"
                         />
-                    </div>
-
-                    <div>
-                        <div className="relative">
-                            <Input
-                                type={showPassword ? 'text' : 'password'}
-                                name="password"
-                                label="Password"
-                                placeholder="Enter your password"
-                                value={formData.password}
-                                onChange={handleInputChange}
-                                required
-                                disabled={isLoading}
-                                className="pl-10 pr-10"
-                                icon={<Lock className="w-4 h-4 text-gray-400" />}
-                            />
-                            <button
-                                type="button"
-                                onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                                disabled={isLoading}
-                            >
-                                {showPassword ? (
-                                    <EyeOff className="w-4 h-4" />
-                                ) : (
-                                    <Eye className="w-4 h-4" />
-                                )}
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center justify-between">
                         <button
                             type="button"
-                            onClick={onSwitchToForgotPassword}
-                            className="text-sm text-purple-600 hover:text-purple-700 font-medium transition-colors"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                             disabled={isLoading}
                         >
-                            Forgot Password?
+                            {showPassword ? (
+                                <EyeOff className="w-5 h-5" />
+                            ) : (
+                                <Eye className="w-5 h-5" />
+                            )}
                         </button>
                     </div>
-
-                    <Button
-                        type="submit"
-                        className="w-full"
-                        disabled={isLoading}
-                        loading={isLoading}
-                    >
-                        {isLoading ? (
-                            <>
-                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                Signing In...
-                            </>
-                        ) : (
-                            'Sign In'
-                        )}
-                    </Button>
-                </form>
-
-                <div className="mt-6 text-center">
-                    <p className="text-gray-600 text-sm">
-                        Don't have an account?{' '}
-                        <button
-                            type="button"
-                            onClick={onSwitchToRegister}
-                            className="text-purple-600 hover:text-purple-700 font-medium transition-colors"
-                            disabled={isLoading}
-                        >
-                            Sign up
-                        </button>
-                    </p>
                 </div>
+
+                <div className="text-left">
+                    <button
+                        type="button"
+                        onClick={onSwitchToForgotPassword}
+                        className="text-sm text-purple-600 hover:text-purple-700 font-medium transition-colors"
+                        disabled={isLoading}
+                    >
+                        Forgot Password?
+                    </button>
+                </div>
+
+                <Button
+                    type="submit"
+                    className="w-full h-12 bg-black hover:bg-gray-800 text-white rounded-xl text-base font-medium"
+                    disabled={isLoading}
+                >
+                    {isLoading ? (
+                        <>
+                            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                            Signing In...
+                        </>
+                    ) : (
+                        'Sign In'
+                    )}
+                </Button>
+            </form>
+
+            <div className="mt-6 text-center">
+                <p className="text-gray-600 text-sm">
+                    Don't have an account?{' '}
+                    <button
+                        type="button"
+                        onClick={onSwitchToRegister}
+                        className="text-purple-600 hover:text-purple-700 font-medium transition-colors"
+                        disabled={isLoading}
+                    >
+                        Sign up
+                    </button>
+                </p>
             </div>
         </motion.div>
     )

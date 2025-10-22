@@ -28,15 +28,15 @@ export async function GET(request: NextRequest) {
       try {
         if (useVectorSearch) {
           // Try vector search first
-          results = await searchDocuments(query, limit, category, tagArray)
+          results = await searchDocuments(query, limit, category || undefined, tagArray)
         } else {
           // Use text search
-          results = await searchDocumentsByText(query, limit, category, tagArray)
+          results = await searchDocumentsByText(query, limit, category || undefined, tagArray)
         }
       } catch (error) {
         console.error('Vector search failed, falling back to text search:', error)
         // Fallback to text search if vector search fails
-        results = await searchDocumentsByText(query, limit, category, tagArray)
+        results = await searchDocumentsByText(query, limit, category || undefined, tagArray)
       }
       
       return NextResponse.json({

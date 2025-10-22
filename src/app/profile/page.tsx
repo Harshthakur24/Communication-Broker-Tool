@@ -1,8 +1,10 @@
 'use client'
 
 import React, { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
-import { useApiMutation } from '@/hooks/useApi'
+import { AppNav } from '@/components/layout/AppNav'
+import { useMutation } from '@/hooks/useApi'
 import { motion } from 'framer-motion'
 import {
     User,
@@ -22,8 +24,8 @@ import { cn } from '@/lib/utils'
 
 export default function ProfilePage() {
     const { user, updateProfile, changePassword } = useAuth()
-    const { mutate: updateProfileMutation, loading: updateLoading } = useApiMutation()
-    const { mutate: changePasswordMutation, loading: passwordLoading } = useApiMutation()
+    const { mutate: updateProfileMutation, loading: updateLoading } = useMutation('/api/users/profile')
+    const { mutate: changePasswordMutation, loading: passwordLoading } = useMutation('/api/users/change-password')
 
     const [activeTab, setActiveTab] = useState<'profile' | 'security'>('profile')
     const [showCurrentPassword, setShowCurrentPassword] = useState(false)
@@ -113,19 +115,22 @@ export default function ProfilePage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50">
-            <div className="container mx-auto px-4 py-8">
+        <div className="min-h-screen bg-gradient-to-br from-white via-purple-50 to-white">
+            {/* Navigation */}
+            <AppNav />
+
+            <div className="container mx-auto px-4 py-8 max-w-7xl">
                 {/* Header */}
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="mb-8"
                 >
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent mb-2">
+                    <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent mb-3">
                         Profile Settings
                     </h1>
-                    <p className="text-gray-600">
-                        Manage your account settings and preferences.
+                    <p className="text-gray-600 text-lg">
+                        Manage your account settings and preferences
                     </p>
                 </motion.div>
 

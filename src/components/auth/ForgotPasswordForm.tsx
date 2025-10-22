@@ -56,18 +56,18 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
-                className={cn('w-full max-w-md mx-auto', className)}
+                className={cn('w-full', className)}
             >
-                <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 p-8 text-center">
-                    <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-                        <CheckCircle className="w-8 h-8 text-white" />
+                <div className="text-center">
+                    <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                        <CheckCircle className="w-10 h-10 text-white" />
                     </div>
 
-                    <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                    <h2 className="text-3xl font-bold text-gray-900 mb-4">
                         Check Your Email
                     </h2>
 
-                    <p className="text-gray-600 mb-6">
+                    <p className="text-gray-600 mb-8">
                         We've sent a password reset link to <strong>{email}</strong>.
                         Please check your email and click the link to reset your password.
                     </p>
@@ -75,10 +75,9 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
                     <div className="space-y-4">
                         <Button
                             onClick={onBackToLogin}
-                            variant="outline"
-                            className="w-full"
+                            className="w-full h-12 bg-black hover:bg-gray-800 text-white rounded-xl text-base font-medium"
                         >
-                            <ArrowLeft className="w-4 h-4 mr-2" />
+                            <ArrowLeft className="w-5 h-5 mr-2" />
                             Back to Sign In
                         </Button>
 
@@ -105,75 +104,68 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
-            className={cn('w-full max-w-md mx-auto', className)}
+            className={cn('w-full', className)}
         >
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 p-8">
-                <div className="text-center mb-8">
-                    <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-purple-700 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                        <Mail className="w-8 h-8 text-white" />
-                    </div>
-                    <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent">
-                        Reset Password
-                    </h2>
-                    <p className="text-gray-600 mt-2">
-                        Enter your email address and we'll send you a link to reset your password.
-                    </p>
+            <div className="text-center mb-8">
+                <div className="w-20 h-20 bg-gradient-to-br from-purple-600 to-purple-700 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                    <Mail className="w-10 h-10 text-white" />
                 </div>
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent mb-3">
+                    Reset Password
+                </h2>
+                <p className="text-gray-600">
+                    Enter your email address and we'll send you a link to reset your password.
+                </p>
+            </div>
 
-                {error && (
-                    <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center space-x-3"
-                    >
-                        <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
-                        <p className="text-red-700 text-sm">{error}</p>
-                    </motion.div>
-                )}
+            {error && (
+                <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center space-x-3"
+                >
+                    <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+                    <p className="text-red-700 text-sm">{error}</p>
+                </motion.div>
+            )}
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div>
-                        <Input
-                            type="email"
-                            label="Email Address"
-                            placeholder="Enter your email address"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                            disabled={isLoading}
-                            className="pl-10"
-                            icon={<Mail className="w-4 h-4 text-gray-400" />}
-                        />
-                    </div>
+            <form onSubmit={handleSubmit} className="space-y-5">
+                <Input
+                    type="email"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    disabled={isLoading}
+                    className="h-12 px-4 bg-white border-gray-200 rounded-xl text-base placeholder:text-gray-400"
+                />
 
-                    <Button
-                        type="submit"
-                        className="w-full"
-                        disabled={isLoading || !email}
-                        loading={isLoading}
-                    >
-                        {isLoading ? (
-                            <>
-                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                Sending Reset Link...
-                            </>
-                        ) : (
-                            'Send Reset Link'
-                        )}
-                    </Button>
-                </form>
+                <Button
+                    type="submit"
+                    className="w-full h-12 bg-black hover:bg-gray-800 text-white rounded-xl text-base font-medium"
+                    disabled={isLoading || !email}
+                >
+                    {isLoading ? (
+                        <>
+                            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                            Sending Reset Link...
+                        </>
+                    ) : (
+                        'Send Reset Link'
+                    )}
+                </Button>
+            </form>
 
-                <div className="mt-6 text-center">
-                    <button
-                        type="button"
-                        onClick={onBackToLogin}
-                        className="text-purple-600 hover:text-purple-700 font-medium transition-colors flex items-center justify-center space-x-2 mx-auto"
-                        disabled={isLoading}
-                    >
-                        <ArrowLeft className="w-4 h-4" />
-                        <span>Back to Sign In</span>
-                    </button>
-                </div>
+            <div className="mt-6 text-center">
+                <button
+                    type="button"
+                    onClick={onBackToLogin}
+                    className="text-purple-600 hover:text-purple-700 font-medium transition-colors flex items-center justify-center space-x-2 mx-auto"
+                    disabled={isLoading}
+                >
+                    <ArrowLeft className="w-4 h-4" />
+                    <span>Back to Sign In</span>
+                </button>
             </div>
         </motion.div>
     )
