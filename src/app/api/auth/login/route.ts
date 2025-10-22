@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database'
-import { comparePassword, generateToken, createSession } from '@/lib/auth'
+import { comparePassword, createSession, generateToken } from '@/lib/auth'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
