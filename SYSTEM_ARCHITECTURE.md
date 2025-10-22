@@ -1,156 +1,162 @@
 # Internal Company AI Communication Hub - System Architecture
 
 ## Overview
-A private, intelligent, always-updated communication broker that replaces internal emails, keeps all company knowledge current, and provides instant, accurate answers to any employee query using RAG (Retrieval-Augmented Generation).
+A private, intelligent, always-updated communication broker that replaces internal emails, keeps all company knowledge current, and provides instant, accurate answers to any employee query.
 
-## System Architecture Diagram
+## High-Level Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────┐
 │                                USER INTERFACE LAYER                            │
 ├─────────────────────────────────────────────────────────────────────────────────┤
-│  ┌─────────────┐  ┌─────────────────┐  ┌─────────────────────────────────────┐  │
-│  │ Left Panel  │  │   Center Panel  │  │         Right Panel                 │  │
-│  │             │  │                 │  │                                     │  │
-│  │ • Teams     │  │ • Chat Interface│  │ • Real-time Insights                │  │
-│  │ • Projects  │  │ • Message Thread│  │ • Policy Updates                    │  │
-│  │ • Shortcuts │  │ • Command Hist. │  │ • Project Statuses                  │  │
-│  │ • Favorites │  │ • Markdown Sup. │  │ • Notifications                     │  │
-│  └─────────────┘  └─────────────────┘  └─────────────────────────────────────┘  │
+│  Web App (React/Next.js)  │  Slack Integration  │  Teams Integration  │  API   │
+│  - Chat Interface         │  - Bot Commands     │  - Bot Commands     │  - REST│
+│  - White & Purple Theme   │  - Message Threads  │  - Message Threads  │  - WebSocket│
+│  - Real-time Updates      │  - Notifications    │  - Notifications    │  - GraphQL│
 └─────────────────────────────────────────────────────────────────────────────────┘
                                         │
                                         ▼
 ┌─────────────────────────────────────────────────────────────────────────────────┐
-│                           PROCESSING & LOGIC LAYER                             │
+│                            PROCESSING & LOGIC LAYER                            │
 ├─────────────────────────────────────────────────────────────────────────────────┤
-│  ┌─────────────┐  ┌─────────────────┐  ┌─────────────────────────────────────┐  │
-│  │   Intent    │  │    Context      │  │         Command Router              │  │
-│  │ Detection   │  │   Manager       │  │                                     │  │
-│  │             │  │                 │  │ • Update KB                         │  │
-│  │ • Classify  │  │ • Memory Mgmt   │  │ • Call Integration APIs             │  │
-│  │ • Route     │  │ • Session State │  │ • Direct Response                   │  │
-│  │ • Validate  │  │ • User Context  │  │ • Trigger Events                    │  │
-│  └─────────────┘  └─────────────────┘  └─────────────────────────────────────┘  │
+│  Intent Detection  │  Context Manager  │  Command Router  │  Memory Management │
+│  - Update Commands │  - Session State  │  - API Routing   │  - Conversation   │
+│  - Query Commands  │  - User Context   │  - Tool Selection│  - History        │
+│  - Notify Commands │  - Project Context│  - Error Handling│  - Preferences    │
 └─────────────────────────────────────────────────────────────────────────────────┘
                                         │
                                         ▼
 ┌─────────────────────────────────────────────────────────────────────────────────┐
 │                              RAG PIPELINE LAYER                                │
 ├─────────────────────────────────────────────────────────────────────────────────┤
-│  ┌─────────────┐  ┌─────────────────┐  ┌─────────────────────────────────────┐  │
-│  │  Document   │  │   Vector Store  │  │         Response Generator          │  │
-│  │ Processor   │  │                 │  │                                     │  │
-│  │             │  │ • Pinecone/     │  │ • RAG Integration                   │  │
-│  │ • Chunking  │  │   Milvus/FAISS  │  │ • Grounding Check                   │  │
-│  │ • Embedding │  │ • Similarity    │  │ • Answer Provenance                 │  │
-│  │ • Indexing  │  │   Search        │  │ • Style Consistency                 │  │
-│  └─────────────┘  └─────────────────┘  └─────────────────────────────────────┘  │
+│  Document Processor  │  Vector Store     │  Retriever      │  Response Generator│
+│  - Text Extraction   │  - Pinecone/FAISS │  - Semantic     │  - LLM Integration│
+│  - Chunking          │  - Embeddings     │  - Search       │  - Grounding      │
+│  - Metadata          │  - Indexing       │  - Ranking      │  - Provenance     │
+│  - Versioning        │  - Updates        │  - Filtering    │  - Consistency    │
 └─────────────────────────────────────────────────────────────────────────────────┘
                                         │
                                         ▼
 ┌─────────────────────────────────────────────────────────────────────────────────┐
-│                            KNOWLEDGE BASE LAYER                                │
+│                              KNOWLEDGE BASE LAYER                              │
 ├─────────────────────────────────────────────────────────────────────────────────┤
-│  ┌─────────────┐  ┌─────────────────┐  ┌─────────────────────────────────────┐  │
-│  │  Document   │  │   Versioning    │  │         Semantic Tagging            │  │
-│  │ Repository  │  │   System        │  │                                     │  │
-│  │             │  │                 │  │ • Auto-categorization               │  │
-│  │ • Policies  │  │ • Change Track  │  │ • Topic Clustering                  │  │
-│  │ • Projects  │  │ • Rollback      │  │ • Entity Extraction                 │  │
-│  │ • Meetings  │  │ • Audit Trail   │  │ • Relationship Mapping              │  │
-│  └─────────────┘  └─────────────────┘  └─────────────────────────────────────┘  │
+│  Document Repository  │  Vector Database  │  Metadata Store  │  Version Control │
+│  - Policies           │  - Pinecone       │  - PostgreSQL    │  - Git-like      │
+│  - Project Notes      │  - Milvus         │  - Document Meta │  - Change Tracking│
+│  - Meeting Transcripts│  - FAISS          │  - User Data     │  - Rollback      │
+│  - Procedures         │  - Custom Index   │  - Permissions   │  - Audit Trail   │
 └─────────────────────────────────────────────────────────────────────────────────┘
                                         │
                                         ▼
 ┌─────────────────────────────────────────────────────────────────────────────────┐
 │                              INTEGRATION LAYER                                 │
 ├─────────────────────────────────────────────────────────────────────────────────┤
-│  ┌─────────────┐  ┌─────────────────┐  ┌─────────────────────────────────────┐  │
-│  │   Project   │  │   Document      │  │         Communication               │  │
-│  │ Management  │  │   Platforms     │  │         Platforms                   │  │
-│  │             │  │                 │  │                                     │  │
-│  │ • Jira      │  │ • Notion        │  │ • Slack                             │  │
-│  │ • Asana     │  │ • Confluence    │  │ • Teams                             │  │
-│  │ • Trello    │  │ • SharePoint    │  │ • Internal Tools                    │  │
-│  └─────────────┘  └─────────────────┘  └─────────────────────────────────────┘  │
+│  Jira Connector    │  Notion/Confluence │  Slack/Teams     │  HR/IT Tools      │
+│  - Project Updates │  - Doc Sync        │  - Message Sync  │  - Employee Data  │
+│  - Status Changes  │  - Version Control │  - Notifications │  - Notifications  │
+│  - Webhook Events  │  - Real-time       │  - Threads       │  - Role Updates   │
+│  - API Polling     │  - Change Detection│  - Commands      │  - Access Control │
 └─────────────────────────────────────────────────────────────────────────────────┘
                                         │
                                         ▼
 ┌─────────────────────────────────────────────────────────────────────────────────┐
 │                            SECURITY & ACCESS CONTROL                           │
 ├─────────────────────────────────────────────────────────────────────────────────┤
-│  ┌─────────────┐  ┌─────────────────┐  ┌─────────────────────────────────────┐  │
-│  │Authentication│  │   Role-Based    │  │         Audit & Encryption          │  │
-│  │             │  │   Permissions   │  │                                     │  │
-│  │ • SSO       │  │ • Read/Write    │  │ • AES-256 Encryption                │  │
-│  │ • OAuth2    │  │ • Department    │  │ • TLS 1.3                           │  │
-│  │ • MFA       │  │ • Project Access│  │ • Audit Logs                        │  │
-│  └─────────────┘  └─────────────────┘  └─────────────────────────────────────┘  │
+│  Authentication    │  Authorization     │  Encryption      │  Audit Logging    │
+│  - SSO Integration │  - Role-based      │  - AES-256       │  - Query Logs     │
+│  - OAuth2          │  - Permissions     │  - TLS 1.3       │  - Change Logs    │
+│  - JWT Tokens      │  - Resource Access │  - Data at Rest  │  - API Logs       │
+│  - MFA Support     │  - API Keys        │  - Data in Transit│  - Compliance    │
 └─────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Data Flow Architecture
 
+### 1. User Input Processing
 ```
-User Input → Intent Detection → Context Analysis → Command Routing
-     ↓
-┌─────────────────────────────────────────────────────────────────┐
-│                    PARALLEL PROCESSING                         │
-├─────────────────────────────────────────────────────────────────┤
-│  ┌─────────────┐  ┌─────────────────┐  ┌─────────────────────┐  │
-│  │   Query     │  │     Update      │  │      Notify         │  │
-│  │   Path      │  │     Path        │  │      Path           │  │
-│  │             │  │                 │  │                     │  │
-│  │ 1. RAG      │  │ 1. Validate     │  │ 1. Check Perms      │  │
-│  │ 2. Retrieve │  │ 2. Update KB    │  │ 2. Send Notif       │  │
-│  │ 3. Generate │  │ 3. Sync Integ.  │  │ 3. Log Event        │  │
-│  │ 4. Ground   │  │ 4. Index        │  │ 4. Update Status    │  │
-│  └─────────────┘  └─────────────────┘  └─────────────────────┘  │
-└─────────────────────────────────────────────────────────────────┘
-     ↓
-Response Generation → UI Update → Audit Log → User Feedback
+User Input → Intent Detection → Context Enrichment → Command Classification
 ```
 
-## Event-Driven Architecture
-
+### 2. Knowledge Retrieval
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                        EVENT BUS                                │
-├─────────────────────────────────────────────────────────────────┤
-│  • Document Updated    • Project Status Changed                │
-│  • Policy Modified     • New Employee Added                     │
-│  • Meeting Scheduled   • Integration Webhook Received           │
-│  • User Query          • System Alert Triggered                 │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    EVENT HANDLERS                               │
-├─────────────────────────────────────────────────────────────────┤
-│  • Knowledge Base Updater  • Notification Dispatcher           │
-│  • Vector Index Rebuilder  • Integration Sync Manager          │
-│  • Permission Validator    • Audit Logger                      │
-└─────────────────────────────────────────────────────────────────┘
+Query → Vector Search → Document Retrieval → Context Assembly → LLM Processing
+```
+
+### 3. Response Generation
+```
+Context + Query → LLM → Response Generation → Grounding Check → User Response
+```
+
+### 4. Data Updates
+```
+Command → Integration API → Data Change → Webhook → Knowledge Base Update
 ```
 
 ## Technology Stack
 
 ### Frontend
-- **Framework**: Next.js 15 with React 19
+- **Framework**: Next.js 14 with App Router
+- **UI Library**: React 18 + TypeScript
 - **Styling**: Tailwind CSS with custom white/purple theme
-- **State Management**: Zustand or Redux Toolkit
-- **Real-time**: WebSocket connections for live updates
-- **UI Components**: Custom components with Framer Motion animations
+- **State Management**: React Context + Zustand
+- **Real-time**: WebSocket connections
+- **Components**: Custom component library
 
 ### Backend
-- **API**: Next.js API routes with tRPC for type-safe APIs
-- **Database**: PostgreSQL for structured data, Redis for caching
-- **Vector Store**: Pinecone or Milvus for embeddings
-- **LLM**: OpenAI GPT-4 or Anthropic Claude for RAG
-- **Authentication**: NextAuth.js with company SSO
+- **Runtime**: Node.js with TypeScript
+- **Framework**: Next.js API Routes
+- **Database**: PostgreSQL with Prisma ORM
+- **Vector Store**: Pinecone (primary) / FAISS (fallback)
+- **LLM**: OpenAI GPT-4 / Anthropic Claude
+- **Authentication**: NextAuth.js with SSO
 
 ### Infrastructure
-- **Deployment**: Docker containers on Kubernetes
-- **Monitoring**: Prometheus + Grafana
-- **Logging**: ELK Stack (Elasticsearch, Logstash, Kibana)
-- **Security**: Vault for secrets management
+- **Deployment**: Vercel / Docker containers
+- **CDN**: Vercel Edge Network
+- **Monitoring**: Vercel Analytics + Custom logging
+- **Security**: Vercel Security Headers + Custom middleware
+
+## Security Architecture
+
+### Authentication Flow
+1. User accesses application
+2. Redirected to company SSO provider
+3. OAuth2 flow with PKCE
+4. JWT token issued with role claims
+5. Token validated on each request
+
+### Authorization Matrix
+```
+Role          | Read KB | Write KB | Admin | Integrations | Audit
+-------------|---------|----------|-------|--------------|-------
+Employee     |    ✓    |    ✗     |   ✗   |      ✗       |   ✗
+Manager      |    ✓    |    ✓     |   ✗   |      ✓       |   ✗
+Admin        |    ✓    |    ✓     |   ✓   |      ✓       |   ✓
+System       |    ✓    |    ✓     |   ✓   |      ✓       |   ✓
+```
+
+### Data Encryption
+- **At Rest**: AES-256 encryption for all stored data
+- **In Transit**: TLS 1.3 for all communications
+- **API Keys**: Encrypted storage with rotation
+- **User Data**: Field-level encryption for sensitive information
+
+## Scalability Considerations
+
+### Horizontal Scaling
+- Stateless API design
+- Database connection pooling
+- Redis for session management
+- CDN for static assets
+
+### Performance Optimization
+- Vector index optimization
+- Query result caching
+- Lazy loading for UI components
+- Background processing for heavy operations
+
+### Monitoring & Observability
+- Application performance monitoring
+- Error tracking and alerting
+- Usage analytics and reporting
+- Security event monitoring

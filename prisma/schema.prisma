@@ -17,7 +17,8 @@ model User {
   password                 String
   avatar                   String?
   department               String?
-  role                     String    @default("user")
+  role                     UserRole  @default(EMPLOYEE)
+  permissions              Json?     // Custom permissions for fine-grained access
   isActive                 Boolean   @default(true)
   isEmailVerified          Boolean   @default(false)
   emailVerificationToken   String?
@@ -25,15 +26,27 @@ model User {
   passwordResetToken       String?
   passwordResetExpires     DateTime?
   lastLogin                DateTime?
+  preferences              Json?     // User preferences and settings
   createdAt                DateTime  @default(now())
   updatedAt                DateTime  @updatedAt
 
   // Relations
-  sessions     Session[]
-  documents    Document[]
-  chatSessions ChatSession[]
+  sessions           Session[]
+  documents          Document[]
+  chatSessions       ChatSession[]
+  auditLogs          AuditLog[]
+  notifications      Notification[]
+  projectMemberships ProjectMember[]
+  integrations       UserIntegration[]
 
   @@map("users")
+}
+
+enum UserRole {
+  EMPLOYEE
+  MANAGER
+  ADMIN
+  SYSTEM
 }
 
 model Session {
@@ -73,18 +86,23 @@ model EmailVerification {
 }
 
 model Document {
-  id         String   @id @default(cuid())
-  title      String
-  content    String
-  type       String // pdf, docx, txt, markdown, etc.
-  category   String? // policies, procedures, faq, etc.
-  tags       String[] // Array of tags for better categorization
-  fileUrl    String? // URL to the original file
-  fileSize   Int? // File size in bytes
-  uploadedBy String
-  isActive   Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id          String        @id @default(cuid())
+  title       String
+  content     String
+  type        DocumentType
+  category    String? // policies, procedures, faq, etc.
+  tags        String[] // Array of tags for better categorization
+  fileUrl     String? // URL to the original file
+  fileSize    Int? // File size in bytes
+  uploadedBy  String
+  source      String? // Source system (jira, notion, confluence, etc.)
+  sourceId    String? // ID in source system
+  version     String        @default("1.0")
+  isActive    Boolean       @default(true)
+  isProcessed Boolean       @default(false)
+  metadata    Json? // Additional metadata
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
   // Relations
   user   User            @relation(fields: [uploadedBy], references: [id])
@@ -92,7 +110,20 @@ model Document {
 
   @@index([category])
   @@index([tags])
+  @@index([source])
+  @@index([isProcessed])
   @@map("documents")
+}
+
+enum DocumentType {
+  PDF
+  DOCX
+  TXT
+  MARKDOWN
+  HTML
+  JSON
+  XML
+  OTHER
 }
 
 model DocumentChunk {
@@ -129,18 +160,213 @@ model ChatSession {
 }
 
 model ChatMessage {
-  id        String   @id @default(cuid())
+  id        String      @id @default(cuid())
   sessionId String
-  type      String // user, assistant, system
+  type      MessageType
   content   String
   sources   Json? // Array of source documents used
   metadata  Json? // Additional metadata
-  createdAt DateTime @default(now())
+  intent    String? // Detected intent (query, update, notify)
+  command   String? // Processed command
+  createdAt DateTime    @default(now())
 
   // Relations
   session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
   @@index([sessionId])
   @@index([createdAt])
+  @@index([intent])
   @@map("chat_messages")
+}
+
+enum MessageType {
+  USER
+  ASSISTANT
+  SYSTEM
+  NOTIFICATION
+}
+
+// Additional models for the AI Communication Hub
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  status      ProjectStatus @default(PLANNING)
+  priority    Priority @default(MEDIUM)
+  startDate   DateTime?
+  endDate     DateTime?
+  sourceId    String? // ID in external system (Jira, etc.)
+  source      String? // Source system
+  metadata    Json? // Additional project metadata
+  isActive    Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  members ProjectMember[]
+  updates ProjectUpdate[]
+
+  @@index([status])
+  @@index([source])
+  @@map("projects")
+}
+
+enum ProjectStatus {
+  PLANNING
+  IN_PROGRESS
+  ON_HOLD
+  COMPLETED
+  CANCELLED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model ProjectMember {
+  id        String   @id @default(cuid())
+  projectId String
+  userId    String
+  role      String   @default("member")
+  joinedAt  DateTime @default(now())
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@map("project_members")
+}
+
+model ProjectUpdate {
+  id        String   @id @default(cuid())
+  projectId String
+  title     String
+  content   String
+  type      UpdateType
+  createdBy String
+  createdAt DateTime @default(now())
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([createdAt])
+  @@map("project_updates")
+}
+
+enum UpdateType {
+  STATUS_CHANGE
+  MILESTONE
+  COMMENT
+  DOCUMENT
+  NOTIFICATION
+}
+
+model Integration {
+  id          String   @id @default(cuid())
+  name        String
+  type        IntegrationType
+  config      Json // Configuration data
+  isActive    Boolean  @default(true)
+  lastSync    DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  userIntegrations UserIntegration[]
+
+  @@map("integrations")
+}
+
+enum IntegrationType {
+  JIRA
+  NOTION
+  CONFLUENCE
+  SLACK
+  TEAMS
+  GITHUB
+  TRELLO
+  ASANA
+}
+
+model UserIntegration {
+  id            String @id @default(cuid())
+  userId        String
+  integrationId String
+  accessToken   String // Encrypted
+  refreshToken  String? // Encrypted
+  expiresAt     DateTime?
+  permissions   Json? // User-specific permissions for this integration
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  integration Integration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, integrationId])
+  @@map("user_integrations")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  content   String
+  type      NotificationType
+  isRead    Boolean  @default(false)
+  metadata  Json? // Additional notification data
+  createdAt DateTime @default(now())
+  readAt    DateTime?
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+enum NotificationType {
+  PROJECT_UPDATE
+  POLICY_CHANGE
+  SYSTEM_ALERT
+  MESSAGE
+  REMINDER
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String
+  resource  String
+  details   Json? // Additional action details
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model VectorIndex {
+  id        String   @id @default(cuid())
+  chunkId   String   @unique
+  embedding Float[] // Vector embedding
+  metadata  Json? // Additional metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([chunkId])
+  @@map("vector_index")
 }

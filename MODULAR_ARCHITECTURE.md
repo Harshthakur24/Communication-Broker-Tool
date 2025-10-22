@@ -1,636 +1,441 @@
-# Modular Architecture Structure
+# Modular Architecture - Internal AI Communication Hub
 
-## Project Structure
+## Directory Structure
 
 ```
-communication-broker-tool/
-├── src/
-│   ├── app/                          # Next.js App Router
-│   │   ├── (auth)/                   # Auth route group
-│   │   │   ├── login/
-│   │   │   └── callback/
-│   │   ├── (dashboard)/              # Protected dashboard routes
-│   │   │   ├── chat/
-│   │   │   ├── projects/
-│   │   │   ├── settings/
-│   │   │   └── admin/
-│   │   ├── api/                      # API routes
-│   │   │   ├── auth/
-│   │   │   ├── chat/
-│   │   │   ├── integrations/
-│   │   │   ├── rag/
-│   │   │   └── webhooks/
-│   │   ├── globals.css
-│   │   ├── layout.tsx
-│   │   └── page.tsx
-│   │
-│   ├── components/                   # UI Components
-│   │   ├── ui/                       # Base UI components
-│   │   │   ├── button.tsx
-│   │   │   ├── input.tsx
-│   │   │   ├── card.tsx
-│   │   │   ├── modal.tsx
-│   │   │   └── index.ts
-│   │   ├── chat/                     # Chat-specific components
-│   │   │   ├── ChatInterface.tsx
-│   │   │   ├── MessageBubble.tsx
-│   │   │   ├── MessageInput.tsx
-│   │   │   ├── TypingIndicator.tsx
-│   │   │   └── ChatHistory.tsx
-│   │   ├── layout/                   # Layout components
-│   │   │   ├── Sidebar.tsx
-│   │   │   ├── TopNavbar.tsx
-│   │   │   ├── NotificationDrawer.tsx
-│   │   │   └── ContextSidebar.tsx
-│   │   ├── dashboard/                # Dashboard components
-│   │   │   ├── ProjectCard.tsx
-│   │   │   ├── StatusIndicator.tsx
-│   │   │   ├── InsightPanel.tsx
-│   │   │   └── ActivityFeed.tsx
-│   │   └── common/                   # Shared components
-│   │       ├── LoadingSpinner.tsx
-│   │       ├── ErrorBoundary.tsx
-│   │       ├── SearchBar.tsx
-│   │       └── UserAvatar.tsx
-│   │
-│   ├── core/                         # Core business logic
-│   │   ├── intent/                   # Intent detection
-│   │   │   ├── IntentDetector.ts
-│   │   │   ├── EntityExtractor.ts
-│   │   │   ├── CommandClassifier.ts
-│   │   │   └── types.ts
-│   │   ├── context/                  # Context management
-│   │   │   ├── ContextManager.ts
-│   │   │   ├── SessionManager.ts
-│   │   │   ├── MemoryStore.ts
-│   │   │   └── UserContext.ts
-│   │   ├── router/                   # Command routing
-│   │   │   ├── CommandRouter.ts
-│   │   │   ├── ActionDispatcher.ts
-│   │   │   ├── PermissionValidator.ts
-│   │   │   └── routes/
-│   │   │       ├── UpdateRoute.ts
-│   │   │       ├── QueryRoute.ts
-│   │   │       └── NotifyRoute.ts
-│   │   └── events/                   # Event handling
-│   │       ├── EventBus.ts
-│   │       ├── EventHandler.ts
-│   │       ├── WebhookProcessor.ts
-│   │       └── NotificationDispatcher.ts
-│   │
-│   ├── rag/                         # RAG pipeline
-│   │   ├── retrieval/               # Document retrieval
-│   │   │   ├── VectorStore.ts
-│   │   │   ├── DocumentRetriever.ts
-│   │   │   ├── SimilaritySearch.ts
-│   │   │   └── QueryProcessor.ts
-│   │   ├── generation/              # Response generation
-│   │   │   ├── ResponseGenerator.ts
-│   │   │   ├── ContextCombiner.ts
-│   │   │   ├── GroundingValidator.ts
-│   │   │   └── ProvenanceTracker.ts
-│   │   ├── indexing/                # Document indexing
-│   │   │   ├── DocumentProcessor.ts
-│   │   │   ├── ChunkingStrategy.ts
-│   │   │   ├── EmbeddingGenerator.ts
-│   │   │   └── IndexManager.ts
-│   │   └── knowledge/               # Knowledge base
-│   │       ├── DocumentRepository.ts
-│   │       ├── VersionManager.ts
-│   │       ├── SemanticTagger.ts
-│   │       └── MetadataExtractor.ts
-│   │
-│   ├── integrations/                # External integrations
-│   │   ├── jira/                    # Jira integration
-│   │   │   ├── JiraClient.ts
-│   │   │   ├── ProjectSync.ts
-│   │   │   ├── IssueTracker.ts
-│   │   │   └── WebhookHandler.ts
-│   │   ├── notion/                  # Notion integration
-│   │   │   ├── NotionClient.ts
-│   │   │   ├── PageSync.ts
-│   │   │   ├── DatabaseSync.ts
-│   │   │   └── ContentExtractor.ts
-│   │   ├── confluence/              # Confluence integration
-│   │   │   ├── ConfluenceClient.ts
-│   │   │   ├── SpaceSync.ts
-│   │   │   ├── PageProcessor.ts
-│   │   │   └── AttachmentHandler.ts
-│   │   ├── slack/                   # Slack integration
-│   │   │   ├── SlackClient.ts
-│   │   │   ├── MessageSync.ts
-│   │   │   ├── ChannelMonitor.ts
-│   │   │   └── BotHandler.ts
-│   │   ├── teams/                   # Microsoft Teams integration
-│   │   │   ├── TeamsClient.ts
-│   │   │   ├── ChatSync.ts
-│   │   │   ├── MeetingProcessor.ts
-│   │   │   └── NotificationSender.ts
-│   │   └── common/                  # Shared integration utilities
-│   │       ├── BaseClient.ts
-│   │       ├── RateLimiter.ts
-│   │       ├── RetryHandler.ts
-│   │       └── WebhookValidator.ts
-│   │
-│   ├── security/                    # Security & access control
-│   │   ├── auth/                    # Authentication
-│   │   │   ├── AuthProvider.ts
-│   │   │   ├── SSOHandler.ts
-│   │   │   ├── TokenManager.ts
-│   │   │   └── SessionValidator.ts
-│   │   ├── permissions/             # Permission management
-│   │   │   ├── RoleManager.ts
-│   │   │   ├── PermissionMatrix.ts
-│   │   │   ├── AccessValidator.ts
-│   │   │   └── PolicyEngine.ts
-│   │   ├── encryption/              # Data encryption
-│   │   │   ├── EncryptionService.ts
-│   │   │   ├── KeyManager.ts
-│   │   │   ├── DataMasker.ts
-│   │   │   └── SecureStorage.ts
-│   │   └── audit/                   # Audit logging
-│   │       ├── AuditLogger.ts
-│   │       ├── EventTracker.ts
-│   │       ├── ComplianceChecker.ts
-│   │       └── ReportGenerator.ts
-│   │
-│   ├── lib/                         # Utility libraries
-│   │   ├── database/                # Database utilities
-│   │   │   ├── connection.ts
-│   │   │   ├── migrations/
-│   │   │   ├── models/
-│   │   │   └── queries/
-│   │   ├── cache/                   # Caching utilities
-│   │   │   ├── RedisClient.ts
-│   │   │   ├── CacheManager.ts
-│   │   │   └── InMemoryCache.ts
-│   │   ├── validation/              # Input validation
-│   │   │   ├── SchemaValidator.ts
-│   │   │   ├── Sanitizer.ts
-│   │   │   └── RateLimiter.ts
-│   │   ├── monitoring/              # Monitoring & logging
-│   │   │   ├── Logger.ts
-│   │   │   ├── MetricsCollector.ts
-│   │   │   ├── HealthChecker.ts
-│   │   │   └── AlertManager.ts
-│   │   └── utils/                   # General utilities
-│   │       ├── date.ts
-│   │       ├── string.ts
-│   │       ├── array.ts
-│   │       └── object.ts
-│   │
-│   ├── hooks/                       # React hooks
-│   │   ├── useAuth.ts
-│   │   ├── useChat.ts
-│   │   ├── useNotifications.ts
-│   │   ├── useWebSocket.ts
-│   │   ├── usePermissions.ts
-│   │   └── useDebounce.ts
-│   │
-│   ├── store/                       # State management
-│   │   ├── authStore.ts
-│   │   ├── chatStore.ts
-│   │   ├── notificationStore.ts
-│   │   ├── projectStore.ts
-│   │   └── index.ts
-│   │
-│   ├── types/                       # TypeScript types
-│   │   ├── auth.ts
-│   │   ├── chat.ts
-│   │   ├── integrations.ts
-│   │   ├── rag.ts
-│   │   ├── security.ts
-│   │   └── common.ts
-│   │
-│   └── styles/                      # Styling
-│       ├── globals.css
-│       ├── components.css
-│       ├── themes/
-│       │   ├── light.css
-│       │   └── dark.css
-│       └── animations.css
-│
-├── public/                          # Static assets
-│   ├── icons/
-│   ├── images/
-│   └── favicon.ico
-│
-├── docs/                           # Documentation
-│   ├── api/
-│   ├── architecture/
-│   ├── deployment/
-│   └── user-guide/
-│
-├── tests/                          # Test files
-│   ├── unit/
-│   ├── integration/
-│   ├── e2e/
-│   └── fixtures/
-│
-├── scripts/                        # Build and deployment scripts
-│   ├── build.sh
-│   ├── deploy.sh
-│   ├── migrate.sh
-│   └── seed.sh
-│
-├── docker/                         # Docker configuration
-│   ├── Dockerfile
-│   ├── docker-compose.yml
-│   └── docker-compose.prod.yml
-│
-├── .env.example
-├── .env.local
-├── .gitignore
-├── next.config.ts
-├── tailwind.config.ts
-├── tsconfig.json
-├── package.json
-└── README.md
+src/
+├── app/                          # Next.js App Router
+│   ├── api/                      # API Routes
+│   │   ├── auth/                 # Authentication endpoints
+│   │   ├── chat/                 # Chat and messaging
+│   │   ├── documents/            # Document management
+│   │   ├── integrations/         # External integrations
+│   │   ├── notifications/        # Notification system
+│   │   └── projects/             # Project management
+│   ├── dashboard/                # Main dashboard
+│   ├── auth/                     # Authentication pages
+│   ├── profile/                  # User profile
+│   └── knowledge-base/           # Knowledge base interface
+├── components/                   # React Components
+│   ├── ui/                       # Base UI components
+│   ├── auth/                     # Authentication components
+│   ├── chat/                     # Chat interface components
+│   ├── documents/                # Document management components
+│   ├── layout/                   # Layout components
+│   └── integrations/             # Integration components
+├── core/                         # Core business logic
+│   ├── intent/                   # Intent detection and classification
+│   ├── context/                  # Context management
+│   ├── commands/                 # Command processing
+│   ├── memory/                   # Memory and session management
+│   └── routing/                  # Command routing
+├── rag/                          # RAG Pipeline
+│   ├── retrieval/                # Document retrieval
+│   ├── embedding/                # Vector embeddings
+│   ├── indexing/                 # Vector indexing
+│   └── generation/               # Response generation
+├── integrations/                 # External integrations
+│   ├── jira/                     # Jira integration
+│   ├── notion/                   # Notion integration
+│   ├── confluence/               # Confluence integration
+│   ├── slack/                    # Slack integration
+│   ├── teams/                    # Teams integration
+│   └── webhooks/                 # Webhook handlers
+├── security/                     # Security and access control
+│   ├── auth/                     # Authentication
+│   ├── permissions/              # Authorization
+│   ├── encryption/               # Data encryption
+│   └── audit/                    # Audit logging
+├── lib/                          # Utilities and shared code
+│   ├── database/                 # Database utilities
+│   ├── ai/                       # AI/LLM utilities
+│   ├── email/                    # Email utilities
+│   ├── utils/                    # General utilities
+│   └── types/                    # TypeScript types
+├── hooks/                        # React hooks
+├── contexts/                     # React contexts
+└── styles/                       # Global styles and themes
 ```
 
-## Core Module Pseudocode
+## Core Modules
 
-### 1. Intent Detection Module
+### 1. Intent Detection Module (`/core/intent/`)
 
+**Purpose**: Classify user input into actionable commands
+
+**Files**:
+- `intentDetector.ts` - Main intent detection logic
+- `classifiers/` - Different classification strategies
+- `types.ts` - Intent type definitions
+
+**Key Functions**:
 ```typescript
-// src/core/intent/IntentDetector.ts
-export class IntentDetector {
-  private classifier: MLClassifier;
-  private entityExtractor: EntityExtractor;
+interface IntentDetector {
+  detectIntent(input: string, context: UserContext): Promise<Intent>
+  classifyCommand(input: string): CommandType
+  extractEntities(input: string): Entity[]
+}
 
-  async detectIntent(userInput: string, context: UserContext): Promise<IntentResult> {
-    // 1. Preprocess input
-    const cleanedInput = this.preprocessInput(userInput);
-    
-    // 2. Extract entities
-    const entities = await this.entityExtractor.extract(cleanedInput);
-    
-    // 3. Classify intent
-    const intent = await this.classifier.classify(cleanedInput, context);
-    
-    // 4. Calculate confidence
-    const confidence = this.calculateConfidence(intent, entities);
-    
-    // 5. Validate against user permissions
-    const isValid = await this.validatePermissions(intent, context.user);
-    
-    return {
-      intent: intent.type,
-      entities,
-      confidence,
-      isValid,
-      suggestedActions: this.getSuggestedActions(intent, entities)
-    };
-  }
-
-  private preprocessInput(input: string): string {
-    return input
-      .toLowerCase()
-      .trim()
-      .replace(/[^\w\s]/g, ' ')
-      .replace(/\s+/g, ' ');
-  }
-
-  private calculateConfidence(intent: Intent, entities: Entity[]): number {
-    // Weighted confidence calculation based on:
-    // - Intent classification score
-    // - Entity extraction completeness
-    // - Context relevance
-    return (intent.score * 0.6) + (entities.completeness * 0.3) + (context.relevance * 0.1);
-  }
+enum CommandType {
+  UPDATE = 'update',
+  QUERY = 'query',
+  NOTIFY = 'notify',
+  SEARCH = 'search'
 }
 ```
 
-### 2. RAG Pipeline Module
+### 2. Context Management Module (`/core/context/`)
 
+**Purpose**: Manage user context, session state, and conversation history
+
+**Files**:
+- `contextManager.ts` - Main context management
+- `sessionManager.ts` - Session state management
+- `conversationManager.ts` - Conversation history
+- `userContext.ts` - User-specific context
+
+**Key Functions**:
 ```typescript
-// src/rag/retrieval/DocumentRetriever.ts
-export class DocumentRetriever {
-  private vectorStore: VectorStore;
-  private embeddingService: EmbeddingService;
-
-  async retrieveRelevantDocuments(
-    query: string, 
-    context: QueryContext,
-    limit: number = 5
-  ): Promise<RetrievedDocument[]> {
-    // 1. Generate query embedding
-    const queryEmbedding = await this.embeddingService.embed(query);
-    
-    // 2. Perform similarity search
-    const similarChunks = await this.vectorStore.similaritySearch(
-      queryEmbedding,
-      {
-        limit,
-        filter: this.buildPermissionFilter(context.user),
-        includeMetadata: true
-      }
-    );
-    
-    // 3. Rank by relevance and recency
-    const rankedChunks = this.rankChunks(similarChunks, context);
-    
-    // 4. Group by document and deduplicate
-    const groupedDocs = this.groupByDocument(rankedChunks);
-    
-    // 5. Load full document context
-    const enrichedDocs = await this.enrichWithContext(groupedDocs);
-    
-    return enrichedDocs;
-  }
-
-  private buildPermissionFilter(user: User): Filter {
-    return {
-      department: { $in: user.departments },
-      accessLevel: { $lte: user.accessLevel },
-      isPublic: true
-    };
-  }
-
-  private rankChunks(chunks: VectorChunk[], context: QueryContext): VectorChunk[] {
-    return chunks
-      .map(chunk => ({
-        ...chunk,
-        score: this.calculateRelevanceScore(chunk, context)
-      }))
-      .sort((a, b) => b.score - a.score);
-  }
-
-  private calculateRelevanceScore(chunk: VectorChunk, context: QueryContext): number {
-    const similarityScore = chunk.similarity;
-    const recencyScore = this.calculateRecencyScore(chunk.metadata.updatedAt);
-    const authorityScore = this.calculateAuthorityScore(chunk.metadata.source);
-    
-    return (similarityScore * 0.5) + (recencyScore * 0.3) + (authorityScore * 0.2);
-  }
+interface ContextManager {
+  getContext(userId: string): Promise<UserContext>
+  updateContext(userId: string, updates: Partial<UserContext>): Promise<void>
+  addToHistory(sessionId: string, message: ChatMessage): Promise<void>
+  getConversationHistory(sessionId: string): Promise<ChatMessage[]>
 }
 ```
 
-### 3. Integration Module
+### 3. Command Routing Module (`/core/routing/`)
 
+**Purpose**: Route commands to appropriate handlers
+
+**Files**:
+- `commandRouter.ts` - Main routing logic
+- `handlers/` - Command handlers
+- `middleware/` - Command processing middleware
+
+**Key Functions**:
 ```typescript
-// src/integrations/jira/JiraClient.ts
-export class JiraClient {
-  private apiClient: APIClient;
-  private rateLimiter: RateLimiter;
-  private retryHandler: RetryHandler;
-
-  async updateProjectStatus(
-    projectKey: string, 
-    status: string, 
-    user: User
-  ): Promise<UpdateResult> {
-    try {
-      // 1. Validate permissions
-      await this.validateProjectAccess(projectKey, user);
-      
-      // 2. Get current project state
-      const project = await this.getProject(projectKey);
-      
-      // 3. Update status
-      const updateResult = await this.rateLimiter.execute(async () => {
-        return await this.apiClient.post(`/issue/${projectKey}/transitions`, {
-          transition: { name: status },
-          comment: {
-            body: `Status updated via AI Communication Hub by ${user.name}`
-          }
-        });
-      });
-      
-      // 4. Log audit trail
-      await this.auditLogger.log({
-        action: 'PROJECT_STATUS_UPDATE',
-        projectKey,
-        oldStatus: project.status,
-        newStatus: status,
-        userId: user.id,
-        timestamp: new Date()
-      });
-      
-      // 5. Trigger knowledge base update
-      await this.eventBus.emit('project.updated', {
-        projectKey,
-        changes: { status },
-        updatedBy: user.id
-      });
-      
-      return {
-        success: true,
-        projectKey,
-        newStatus: status,
-        updatedAt: new Date()
-      };
-      
-    } catch (error) {
-      await this.errorHandler.handle(error, { projectKey, status, user });
-      throw error;
-    }
-  }
-
-  private async validateProjectAccess(projectKey: string, user: User): Promise<void> {
-    const permissions = await this.permissionService.getProjectPermissions(projectKey, user.id);
-    
-    if (!permissions.canWrite) {
-      throw new PermissionError(`User ${user.id} does not have write access to project ${projectKey}`);
-    }
-  }
+interface CommandRouter {
+  route(command: Command, context: UserContext): Promise<Handler>
+  execute(command: Command, handler: Handler): Promise<Response>
+  validate(command: Command, user: User): Promise<boolean>
 }
 ```
 
-### 4. Security Module
+### 4. Memory Management Module (`/core/memory/`)
 
+**Purpose**: Manage conversation memory and user preferences
+
+**Files**:
+- `memoryManager.ts` - Main memory management
+- `preferences.ts` - User preferences
+- `cache.ts` - Caching layer
+
+**Key Functions**:
 ```typescript
-// src/security/auth/AuthProvider.ts
-export class AuthProvider {
-  private ssoHandler: SSOHandler;
-  private tokenManager: TokenManager;
-  private sessionValidator: SessionValidator;
-
-  async authenticateUser(credentials: AuthCredentials): Promise<AuthResult> {
-    try {
-      // 1. Validate credentials with SSO
-      const ssoResult = await this.ssoHandler.authenticate(credentials);
-      
-      // 2. Generate JWT token
-      const token = await this.tokenManager.generateToken({
-        userId: ssoResult.user.id,
-        email: ssoResult.user.email,
-        roles: ssoResult.user.roles,
-        departments: ssoResult.user.departments
-      });
-      
-      // 3. Create session
-      const session = await this.createSession(ssoResult.user, token);
-      
-      // 4. Log authentication
-      await this.auditLogger.log({
-        action: 'USER_LOGIN',
-        userId: ssoResult.user.id,
-        timestamp: new Date(),
-        ipAddress: credentials.ipAddress
-      });
-      
-      return {
-        success: true,
-        user: ssoResult.user,
-        token,
-        sessionId: session.id,
-        expiresAt: session.expiresAt
-      };
-      
-    } catch (error) {
-      await this.auditLogger.log({
-        action: 'LOGIN_FAILED',
-        email: credentials.email,
-        error: error.message,
-        timestamp: new Date()
-      });
-      throw error;
-    }
-  }
-
-  async validateSession(sessionId: string): Promise<SessionValidationResult> {
-    const session = await this.sessionValidator.validate(sessionId);
-    
-    if (!session.isValid) {
-      return { isValid: false, reason: session.reason };
-    }
-    
-    // Refresh session if needed
-    if (session.needsRefresh) {
-      await this.refreshSession(sessionId);
-    }
-    
-    return {
-      isValid: true,
-      user: session.user,
-      permissions: await this.getUserPermissions(session.user.id)
-    };
-  }
+interface MemoryManager {
+  storeMemory(key: string, value: any): Promise<void>
+  retrieveMemory(key: string): Promise<any>
+  clearMemory(userId: string): Promise<void>
+  getPreferences(userId: string): Promise<UserPreferences>
 }
 ```
 
-## API Structure
+## RAG Pipeline Module (`/rag/`)
 
-### REST API Endpoints
+### 1. Document Retrieval (`/rag/retrieval/`)
 
+**Purpose**: Retrieve relevant documents from knowledge base
+
+**Files**:
+- `documentRetriever.ts` - Main retrieval logic
+- `semanticSearch.ts` - Semantic search implementation
+- `ranking.ts` - Document ranking algorithms
+
+**Key Functions**:
 ```typescript
-// src/app/api/chat/route.ts
-export async function POST(request: Request) {
-  const { message, context } = await request.json();
-  
-  // 1. Authenticate user
-  const user = await authProvider.authenticateRequest(request);
-  
-  // 2. Detect intent
-  const intent = await intentDetector.detectIntent(message, user.context);
-  
-  // 3. Route command
-  const result = await commandRouter.route(intent, user);
-  
-  // 4. Generate response
-  const response = await responseGenerator.generate(result, user);
-  
-  return Response.json(response);
-}
-
-// src/app/api/integrations/jira/webhook/route.ts
-export async function POST(request: Request) {
-  const payload = await request.json();
-  
-  // 1. Validate webhook signature
-  const isValid = await webhookValidator.validate(request, payload);
-  if (!isValid) {
-    return Response.json({ error: 'Invalid signature' }, { status: 401 });
-  }
-  
-  // 2. Process webhook
-  await webhookProcessor.process('jira', payload);
-  
-  return Response.json({ success: true });
+interface DocumentRetriever {
+  retrieveDocuments(query: string, filters?: SearchFilters): Promise<Document[]>
+  searchSemantic(query: string, limit?: number): Promise<SearchResult[]>
+  rankDocuments(documents: Document[], query: string): Promise<RankedDocument[]>
 }
 ```
 
-## Database Schema
+### 2. Vector Embeddings (`/rag/embedding/`)
 
-```sql
--- Users and Authentication
-CREATE TABLE users (
-  id UUID PRIMARY KEY,
-  email VARCHAR(255) UNIQUE NOT NULL,
-  name VARCHAR(255) NOT NULL,
-  department VARCHAR(100),
-  role VARCHAR(50),
-  access_level INTEGER DEFAULT 1,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
+**Purpose**: Generate and manage vector embeddings
 
--- Chat Sessions
-CREATE TABLE chat_sessions (
-  id UUID PRIMARY KEY,
-  user_id UUID REFERENCES users(id),
-  title VARCHAR(255),
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
+**Files**:
+- `embeddingService.ts` - Main embedding service
+- `vectorStore.ts` - Vector store interface
+- `pinecone.ts` - Pinecone implementation
+- `faiss.ts` - FAISS implementation
 
--- Messages
-CREATE TABLE messages (
-  id UUID PRIMARY KEY,
-  session_id UUID REFERENCES chat_sessions(id),
-  content TEXT NOT NULL,
-  role VARCHAR(20) NOT NULL, -- 'user' or 'assistant'
-  metadata JSONB,
-  created_at TIMESTAMP DEFAULT NOW()
-);
-
--- Knowledge Base Documents
-CREATE TABLE documents (
-  id UUID PRIMARY KEY,
-  title VARCHAR(500) NOT NULL,
-  content TEXT NOT NULL,
-  source VARCHAR(255),
-  document_type VARCHAR(100),
-  department VARCHAR(100),
-  access_level INTEGER DEFAULT 1,
-  version INTEGER DEFAULT 1,
-  embedding VECTOR(1536), -- For vector similarity search
-  metadata JSONB,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- Integration Configurations
-CREATE TABLE integration_configs (
-  id UUID PRIMARY KEY,
-  integration_type VARCHAR(50) NOT NULL,
-  config JSONB NOT NULL,
-  is_active BOOLEAN DEFAULT true,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- Audit Logs
-CREATE TABLE audit_logs (
-  id UUID PRIMARY KEY,
-  user_id UUID REFERENCES users(id),
-  action VARCHAR(100) NOT NULL,
-  resource_type VARCHAR(50),
-  resource_id UUID,
-  details JSONB,
-  ip_address INET,
-  user_agent TEXT,
-  created_at TIMESTAMP DEFAULT NOW()
-);
+**Key Functions**:
+```typescript
+interface EmbeddingService {
+  generateEmbedding(text: string): Promise<number[]>
+  storeEmbedding(id: string, embedding: number[], metadata: any): Promise<void>
+  searchSimilar(embedding: number[], limit: number): Promise<SearchResult[]>
+}
 ```
 
-This modular architecture provides:
+### 3. Response Generation (`/rag/generation/`)
 
-1. **Separation of Concerns**: Each module has a specific responsibility
-2. **Scalability**: Modules can be scaled independently
-3. **Maintainability**: Clear boundaries and interfaces
-4. **Testability**: Each module can be unit tested
-5. **Extensibility**: New integrations and features can be added easily
-6. **Security**: Centralized security and permission management
-7. **Performance**: Optimized for fast retrieval and response generation
+**Purpose**: Generate AI responses using retrieved context
+
+**Files**:
+- `responseGenerator.ts` - Main response generation
+- `llmService.ts` - LLM integration
+- `grounding.ts` - Response grounding
+- `provenance.ts` - Source attribution
+
+**Key Functions**:
+```typescript
+interface ResponseGenerator {
+  generateResponse(query: string, context: Document[]): Promise<Response>
+  groundResponse(response: string, sources: Document[]): Promise<GroundedResponse>
+  addProvenance(response: string, sources: Document[]): Promise<string>
+}
+```
+
+## Integration Layer (`/integrations/`)
+
+### 1. Jira Integration (`/integrations/jira/`)
+
+**Files**:
+- `jiraClient.ts` - Jira API client
+- `projectSync.ts` - Project synchronization
+- `webhookHandler.ts` - Webhook processing
+- `types.ts` - Jira-specific types
+
+**Key Functions**:
+```typescript
+interface JiraIntegration {
+  getProject(projectId: string): Promise<JiraProject>
+  updateProject(projectId: string, updates: ProjectUpdate): Promise<void>
+  createIssue(issue: JiraIssue): Promise<JiraIssue>
+  handleWebhook(payload: JiraWebhook): Promise<void>
+}
+```
+
+### 2. Notion Integration (`/integrations/notion/`)
+
+**Files**:
+- `notionClient.ts` - Notion API client
+- `documentSync.ts` - Document synchronization
+- `pageProcessor.ts` - Page processing
+- `types.ts` - Notion-specific types
+
+**Key Functions**:
+```typescript
+interface NotionIntegration {
+  getPage(pageId: string): Promise<NotionPage>
+  updatePage(pageId: string, updates: PageUpdate): Promise<void>
+  searchPages(query: string): Promise<NotionPage[]>
+  syncDatabase(databaseId: string): Promise<void>
+}
+```
+
+### 3. Slack Integration (`/integrations/slack/`)
+
+**Files**:
+- `slackClient.ts` - Slack API client
+- `messageHandler.ts` - Message processing
+- `notificationService.ts` - Notification sending
+- `bot.ts` - Slack bot implementation
+
+**Key Functions**:
+```typescript
+interface SlackIntegration {
+  sendMessage(channel: string, message: string): Promise<void>
+  sendNotification(userId: string, notification: Notification): Promise<void>
+  handleCommand(command: SlackCommand): Promise<SlackResponse>
+  getChannelHistory(channelId: string): Promise<SlackMessage[]>
+}
+```
+
+## Security Module (`/security/`)
+
+### 1. Authentication (`/security/auth/`)
+
+**Files**:
+- `authService.ts` - Main authentication service
+- `sso.ts` - SSO integration
+- `jwt.ts` - JWT token management
+- `middleware.ts` - Auth middleware
+
+**Key Functions**:
+```typescript
+interface AuthService {
+  authenticate(credentials: Credentials): Promise<AuthResult>
+  validateToken(token: string): Promise<User>
+  refreshToken(refreshToken: string): Promise<TokenPair>
+  logout(userId: string): Promise<void>
+}
+```
+
+### 2. Authorization (`/security/permissions/`)
+
+**Files**:
+- `permissionService.ts` - Permission checking
+- `roleManager.ts` - Role management
+- `accessControl.ts` - Access control lists
+- `middleware.ts` - Authorization middleware
+
+**Key Functions**:
+```typescript
+interface PermissionService {
+  checkPermission(user: User, resource: string, action: string): Promise<boolean>
+  getUserPermissions(userId: string): Promise<Permission[]>
+  grantPermission(userId: string, permission: Permission): Promise<void>
+  revokePermission(userId: string, permission: Permission): Promise<void>
+}
+```
+
+### 3. Audit Logging (`/security/audit/`)
+
+**Files**:
+- `auditLogger.ts` - Main audit logging
+- `eventTracker.ts` - Event tracking
+- `compliance.ts` - Compliance reporting
+- `encryption.ts` - Log encryption
+
+**Key Functions**:
+```typescript
+interface AuditLogger {
+  logAction(userId: string, action: string, resource: string, details?: any): Promise<void>
+  getAuditTrail(userId: string, filters?: AuditFilters): Promise<AuditLog[]>
+  exportLogs(filters: ExportFilters): Promise<Buffer>
+}
+```
+
+## UI Components (`/components/`)
+
+### 1. Base UI Components (`/components/ui/`)
+
+**Files**:
+- `button.tsx` - Button component
+- `input.tsx` - Input component
+- `modal.tsx` - Modal component
+- `toast.tsx` - Toast notification
+- `loading.tsx` - Loading spinner
+- `card.tsx` - Card component
+- `badge.tsx` - Badge component
+- `avatar.tsx` - Avatar component
+- `tooltip.tsx` - Tooltip component
+
+### 2. Chat Components (`/components/chat/`)
+
+**Files**:
+- `ChatInterface.tsx` - Main chat interface
+- `MessageBubble.tsx` - Individual message
+- `MessageThread.tsx` - Message threading
+- `TypingIndicator.tsx` - Typing animation
+- `CommandHistory.tsx` - Command history
+- `SourceAttribution.tsx` - Source display
+
+### 3. Layout Components (`/components/layout/`)
+
+**Files**:
+- `MainLayout.tsx` - Main application layout
+- `TopNavbar.tsx` - Top navigation
+- `LeftSidebar.tsx` - Left sidebar
+- `RightPanel.tsx` - Right panel
+- `MobileMenu.tsx` - Mobile navigation
+
+### 4. Document Components (`/components/documents/`)
+
+**Files**:
+- `DocumentManager.tsx` - Document management
+- `DocumentUpload.tsx` - File upload
+- `DocumentViewer.tsx` - Document display
+- `DocumentSearch.tsx` - Document search
+- `DocumentTags.tsx` - Tag management
+
+## API Routes (`/app/api/`)
+
+### 1. Authentication Routes (`/app/api/auth/`)
+
+**Files**:
+- `login/route.ts` - Login endpoint
+- `logout/route.ts` - Logout endpoint
+- `register/route.ts` - Registration endpoint
+- `me/route.ts` - Current user info
+- `forgot-password/route.ts` - Password reset
+- `reset-password/route.ts` - Password reset confirmation
+- `verify-email/route.ts` - Email verification
+
+### 2. Chat Routes (`/app/api/chat/`)
+
+**Files**:
+- `messages/route.ts` - Message CRUD
+- `suggestions/route.ts` - Command suggestions
+- `stream/route.ts` - Streaming responses
+- `history/route.ts` - Chat history
+
+### 3. Document Routes (`/app/api/documents/`)
+
+**Files**:
+- `route.ts` - Document CRUD
+- `upload/route.ts` - File upload
+- `search/route.ts` - Document search
+- `process/route.ts` - Document processing
+- `sync/route.ts` - External sync
+
+### 4. Integration Routes (`/app/api/integrations/`)
+
+**Files**:
+- `jira/route.ts` - Jira integration
+- `notion/route.ts` - Notion integration
+- `slack/route.ts` - Slack integration
+- `webhooks/route.ts` - Webhook handlers
+- `sync/route.ts` - Data synchronization
+
+## Configuration Files
+
+### 1. Environment Configuration
+- `.env.local` - Local environment variables
+- `.env.example` - Environment template
+- `next.config.ts` - Next.js configuration
+
+### 2. Database Configuration
+- `prisma/schema.prisma` - Database schema
+- `prisma/migrations/` - Database migrations
+- `scripts/setup-db.sql` - Database setup
+
+### 3. TypeScript Configuration
+- `tsconfig.json` - TypeScript configuration
+- `types/` - Global type definitions
+
+### 4. Styling Configuration
+- `tailwind.config.ts` - Tailwind CSS configuration
+- `postcss.config.mjs` - PostCSS configuration
+- `styles/globals.css` - Global styles
+
+## Key Design Principles
+
+### 1. Modularity
+- Each module has a single responsibility
+- Clear interfaces between modules
+- Easy to test and maintain
+
+### 2. Scalability
+- Stateless design where possible
+- Horizontal scaling support
+- Efficient resource utilization
+
+### 3. Security
+- Defense in depth
+- Principle of least privilege
+- Comprehensive audit logging
+
+### 4. Performance
+- Caching at multiple levels
+- Lazy loading
+- Optimized database queries
+
+### 5. Maintainability
+- Clear code organization
+- Comprehensive documentation
+- Automated testing

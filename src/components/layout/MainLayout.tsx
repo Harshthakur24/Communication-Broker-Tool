@@ -1,87 +1,97 @@
-'use client'
+'use client';
 
-import React, { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { LeftSidebar } from './LeftSidebar'
-import { TopNavbar } from './TopNavbar'
-import { RightPanel } from './RightPanel'
-import { EnhancedChatInterface } from '../chat/EnhancedChatInterface'
-import { cn } from '@/lib/utils'
+import React, { useState } from 'react';
+import { LeftSidebar } from './LeftSidebar';
+import { TopNavbar } from './TopNavbar';
+import { RightPanel } from './RightPanel';
+import { EnhancedChatInterface } from '@/components/chat/EnhancedChatInterface';
 
 interface MainLayoutProps {
-    className?: string
+  children?: React.ReactNode;
 }
 
-export const MainLayout: React.FC<MainLayoutProps> = ({ className }) => {
-    const [sidebarOpen, setSidebarOpen] = useState(false)
-    const [rightPanelOpen, setRightPanelOpen] = useState(true)
+export function MainLayout({ children }: MainLayoutProps) {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [rightPanelOpen, setRightPanelOpen] = useState(true);
 
-    return (
-        <div className={cn('min-h-screen bg-gradient-to-br from-purple-50 to-white', className)}>
-            <div className="flex h-screen">
-                {/* Left Sidebar */}
-                <AnimatePresence>
-                    {sidebarOpen && (
-                        <motion.div
-                            initial={{ x: -300, opacity: 0 }}
-                            animate={{ x: 0, opacity: 1 }}
-                            exit={{ x: -300, opacity: 0 }}
-                            transition={{ duration: 0.3, ease: 'easeInOut' }}
-                            className="lg:hidden fixed inset-y-0 left-0 z-50 w-64"
-                        >
-                            <LeftSidebar />
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+  const handleSendMessage = async (message: string) => {
+    // This would typically call the chat API
+    console.log('Sending message:', message);
+  };
 
-                {/* Desktop Sidebar */}
-                <div className="hidden lg:block">
-                    <LeftSidebar />
-                </div>
+  const handleFileUpload = async (file: File) => {
+    // This would typically handle file upload
+    console.log('Uploading file:', file.name);
+  };
 
-                {/* Main Content Area */}
-                <div className="flex-1 flex flex-col min-w-0">
-                    {/* Top Navigation */}
-                    <TopNavbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+  const handleVoiceInput = async (audio: Blob) => {
+    // This would typically handle voice input
+    console.log('Voice input received');
+  };
 
-                    {/* Content */}
-                    <main className="flex-1 flex overflow-hidden">
-                        {/* Center Panel - Chat Interface */}
-                        <div className="flex-1 flex flex-col min-w-0">
-                            <EnhancedChatInterface />
-                        </div>
+  const handleSuggestionClick = (suggestion: string) => {
+    // This would typically set the input value
+    console.log('Suggestion clicked:', suggestion);
+  };
 
-                        {/* Right Panel */}
-                        <AnimatePresence>
-                            {rightPanelOpen && (
-                                <motion.div
-                                    initial={{ x: 300, opacity: 0 }}
-                                    animate={{ x: 0, opacity: 1 }}
-                                    exit={{ x: 300, opacity: 0 }}
-                                    transition={{ duration: 0.3, ease: 'easeInOut' }}
-                                    className="hidden xl:block"
-                                >
-                                    <RightPanel />
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </main>
-                </div>
+  // Mock data for demonstration
+  const messages = [
+    {
+      id: '1',
+      type: 'assistant' as const,
+      content: 'Hello! I\'m your AI assistant. I can help you with projects, policies, and procedures. What would you like to know?',
+      timestamp: new Date(),
+      sources: []
+    }
+  ];
+
+  const suggestions = [
+    'What\'s the status of project Alpha?',
+    'Show me the remote work policy',
+    'Notify the team about the meeting',
+    'Search for HR documents'
+  ];
+
+  return (
+    <div className="h-screen bg-gray-50 flex flex-col">
+      {/* Top Navigation */}
+      <TopNavbar 
+        onMenuClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+        onNotificationsClick={() => setRightPanelOpen(!rightPanelOpen)}
+      />
+
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left Sidebar */}
+        <LeftSidebar 
+          collapsed={sidebarCollapsed}
+          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+        />
+
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col">
+          {children || (
+            <div className="flex-1 flex">
+              {/* Chat Interface */}
+              <div className="flex-1">
+                <EnhancedChatInterface
+                  onSendMessage={handleSendMessage}
+                  messages={messages}
+                  isLoading={false}
+                  onFileUpload={handleFileUpload}
+                  onVoiceInput={handleVoiceInput}
+                  suggestions={suggestions}
+                  onSuggestionClick={handleSuggestionClick}
+                />
+              </div>
+
+              {/* Right Panel */}
+              {rightPanelOpen && (
+                <RightPanel onClose={() => setRightPanelOpen(false)} />
+              )}
             </div>
-
-            {/* Mobile Overlay */}
-            <AnimatePresence>
-                {sidebarOpen && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="lg:hidden fixed inset-0 z-40 bg-black bg-opacity-50"
-                        onClick={() => setSidebarOpen(false)}
-                    />
-                )}
-            </AnimatePresence>
+          )}
         </div>
-    )
+      </div>
+    </div>
+  );
 }
