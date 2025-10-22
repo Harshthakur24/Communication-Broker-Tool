@@ -11,14 +11,14 @@ User Types: "Mark this project as in progress"
 ├─────────────────────────────────────────────────────────────────┤
 │  • Sanitize input text                                         │
 │  • Check for malicious content                                 │
-│  • Validate user permissions                                   │
+│  • Validate user permissions (RBAC)                            │
 │  • Extract user context (department, role, current project)    │
 └─────────────────────────────────────────────────────────────────┘
      ↓
 ┌─────────────────────────────────────────────────────────────────┐
 │                   INTENT DETECTION                             │
 ├─────────────────────────────────────────────────────────────────┤
-│  • Classify intent: UPDATE, QUERY, NOTIFY, or CHAT            │
+│  • Classify intent: UPDATE, QUERY, NOTIFY, or CHAT             │
 │  • Extract entities: "project", "in progress"                 │
 │  • Determine action type: Project Management Update            │
 │  • Confidence score: 0.95                                     │
@@ -34,7 +34,7 @@ User Types: "Mark this project as in progress"
 │  • Retrieve user session history                               │
 │  • Load current project context                                │
 │  • Check recent interactions                                   │
-│  • Validate user has access to target project                 │
+│  • Validate user has access to target project                  │
 │  • Load project metadata and current status                    │
 └─────────────────────────────────────────────────────────────────┘
      ↓
@@ -65,11 +65,12 @@ User Types: "Mark this project as in progress"
 ┌─────────────────────────────────────────────────────────────────┐
 │                 KNOWLEDGE BASE UPDATE                          │
 ├─────────────────────────────────────────────────────────────────┤
-│  • Update project status in local KB                           │
-│  • Re-index project document                                   │
-│  • Update vector embeddings                                    │
+│  • Update project status in local KB (Postgres)                │
+│  • Re-index affected records                                   │
+│  • Update pgvector embeddings                                  │
+│  • Emit event on Event Bus                                     │
 │  • Trigger notification to project team                        │
-│  • Log change in audit system                                  │
+│  • Append immutable audit log                                  │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -83,7 +84,7 @@ User Types: "Mark this project as in progress"
 │  • Include project details and new status                      │
 │  • Add relevant context and next steps                         │
 │  • Format with markdown and styling                            │
-│  • Include provenance: "Updated via Jira API"                 │
+│  • Include provenance: "Updated via Jira API"                  │
 └─────────────────────────────────────────────────────────────────┘
      ↓
 ┌─────────────────────────────────────────────────────────────────┐
@@ -117,10 +118,10 @@ User Input: "Is the new policy live?"
 │                   RAG PIPELINE                                 │
 ├─────────────────────────────────────────────────────────────────┤
 │  • Generate query embedding                                    │
-│  • Search vector store for policy documents                    │
-│  • Retrieve top 5 relevant chunks                             │
-│  • Rank by relevance and recency                              │
-│  • Filter by user permissions                                 │
+│  • Search pgvector for policy documents                        │
+│  • Retrieve top 5 relevant chunks                              │
+│  • Rank by relevance and recency                               │
+│  • Filter by user permissions (row-level RBAC)                 │
 └─────────────────────────────────────────────────────────────────┘
      ↓
 ┌─────────────────────────────────────────────────────────────────┐
@@ -139,7 +140,7 @@ User Input: "Is the new policy live?"
 │  • Generate grounded response                                  │
 │  • Include specific policy details and dates                   │
 │  • Add source citations                                        │
-│  • Ensure factual accuracy                                     │
+│  • Ensure factual accuracy via grounding check                 │
 └─────────────────────────────────────────────────────────────────┘
      ↓
 ┌─────────────────────────────────────────────────────────────────┐
@@ -171,11 +172,11 @@ Jira Webhook: Project status changed to "Completed"
 ┌─────────────────────────────────────────────────────────────────┐
 │                 EVENT HANDLER                                  │
 ├─────────────────────────────────────────────────────────────────┤
-│  • Update local knowledge base                                 │
+│  • Update local knowledge base (Postgres)                      │
 │  • Re-index project documents                                  │
-│  • Update vector embeddings                                    │
-│  • Trigger notifications                                       │
-│  • Log audit trail                                            │
+│  • Update pgvector embeddings                                  │
+│  • Emit events for downstream consumers                        │
+│  • Append audit trail                                          │
 └─────────────────────────────────────────────────────────────────┘
      ↓
 ┌─────────────────────────────────────────────────────────────────┐

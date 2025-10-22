@@ -73,14 +73,15 @@ communication-broker-tool/
 │   │   │       ├── QueryRoute.ts
 │   │   │       └── NotifyRoute.ts
 │   │   └── events/                   # Event handling
-│   │       ├── EventBus.ts
+│   │       ├── EventBus.ts           # NATS/Redis Streams adapter
 │   │       ├── EventHandler.ts
 │   │       ├── WebhookProcessor.ts
-│   │       └── NotificationDispatcher.ts
+│   │       ├── NotificationDispatcher.ts
+│   │       └── OutboxStore.ts        # Postgres outbox for reliability
 │   │
 │   ├── rag/                         # RAG pipeline
 │   │   ├── retrieval/               # Document retrieval
-│   │   │   ├── VectorStore.ts
+│   │   │   ├── VectorStore.ts       # pgvector-backed implementation
 │   │   │   ├── DocumentRetriever.ts
 │   │   │   ├── SimilaritySearch.ts
 │   │   │   └── QueryProcessor.ts
@@ -149,14 +150,14 @@ communication-broker-tool/
 │   │   │   ├── DataMasker.ts
 │   │   │   └── SecureStorage.ts
 │   │   └── audit/                   # Audit logging
-│   │       ├── AuditLogger.ts
+│   │       ├── AuditLogger.ts       # append-only logs
 │   │       ├── EventTracker.ts
 │   │       ├── ComplianceChecker.ts
 │   │       └── ReportGenerator.ts
 │   │
 │   ├── lib/                         # Utility libraries
 │   │   ├── database/                # Database utilities
-│   │   │   ├── connection.ts
+│   │   │   ├── prisma.ts            # Prisma client
 │   │   │   ├── migrations/
 │   │   │   ├── models/
 │   │   │   └── queries/
@@ -317,7 +318,7 @@ export class DocumentRetriever {
     // 1. Generate query embedding
     const queryEmbedding = await this.embeddingService.embed(query);
     
-    // 2. Perform similarity search
+    // 2. Perform similarity search (pgvector cosine distance)
     const similarChunks = await this.vectorStore.similaritySearch(
       queryEmbedding,
       {
@@ -340,6 +341,7 @@ export class DocumentRetriever {
   }
 
   private buildPermissionFilter(user: User): Filter {
+    // Row-level security style filter
     return {
       department: { $in: user.departments },
       accessLevel: { $lte: user.accessLevel },
@@ -407,7 +409,7 @@ export class JiraClient {
         timestamp: new Date()
       });
       
-      // 5. Trigger knowledge base update
+      // 5. Trigger knowledge base update via Event Bus
       await this.eventBus.emit('project.updated', {
         projectKey,
         changes: { status },
@@ -525,7 +527,7 @@ export async function POST(request: Request) {
   // 2. Detect intent
   const intent = await intentDetector.detectIntent(message, user.context);
   
-  // 3. Route command
+  // 3. Route command (RBAC enforced)
   const result = await commandRouter.route(intent, user);
   
   // 4. Generate response
@@ -553,76 +555,41 @@ export async function POST(request: Request) {
 
 ## Database Schema
 
-```sql
--- Users and Authentication
-CREATE TABLE users (
-  id UUID PRIMARY KEY,
-  email VARCHAR(255) UNIQUE NOT NULL,
-  name VARCHAR(255) NOT NULL,
-  department VARCHAR(100),
-  role VARCHAR(50),
-  access_level INTEGER DEFAULT 1,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
+```prisma
+// Prisma schema highlights (PostgreSQL + pgvector via raw SQL migrations)
 
--- Chat Sessions
-CREATE TABLE chat_sessions (
-  id UUID PRIMARY KEY,
-  user_id UUID REFERENCES users(id),
-  title VARCHAR(255),
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
+model Document {
+  id         String          @id @default(cuid())
+  title      String
+  content    String
+  type       String
+  category   String?
+  tags       String[]
+  fileUrl    String?
+  fileSize   Int?
+  uploadedBy String
+  isActive   Boolean         @default(true)
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
 
--- Messages
-CREATE TABLE messages (
-  id UUID PRIMARY KEY,
-  session_id UUID REFERENCES chat_sessions(id),
-  content TEXT NOT NULL,
-  role VARCHAR(20) NOT NULL, -- 'user' or 'assistant'
-  metadata JSONB,
-  created_at TIMESTAMP DEFAULT NOW()
-);
+  user   User                @relation(fields: [uploadedBy], references: [id])
+  chunks DocumentChunk[]
+}
 
--- Knowledge Base Documents
-CREATE TABLE documents (
-  id UUID PRIMARY KEY,
-  title VARCHAR(500) NOT NULL,
-  content TEXT NOT NULL,
-  source VARCHAR(255),
-  document_type VARCHAR(100),
-  department VARCHAR(100),
-  access_level INTEGER DEFAULT 1,
-  version INTEGER DEFAULT 1,
-  embedding VECTOR(1536), -- For vector similarity search
-  metadata JSONB,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
+model DocumentChunk {
+  id         String   @id @default(cuid())
+  documentId String
+  content    String
+  chunkIndex Int
+  embedding  Bytes?   // stored as vector via custom migration; mirrored here
+  metadata   Json?
+  createdAt  DateTime @default(now())
 
--- Integration Configurations
-CREATE TABLE integration_configs (
-  id UUID PRIMARY KEY,
-  integration_type VARCHAR(50) NOT NULL,
-  config JSONB NOT NULL,
-  is_active BOOLEAN DEFAULT true,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+}
 
--- Audit Logs
-CREATE TABLE audit_logs (
-  id UUID PRIMARY KEY,
-  user_id UUID REFERENCES users(id),
-  action VARCHAR(100) NOT NULL,
-  resource_type VARCHAR(50),
-  resource_id UUID,
-  details JSONB,
-  ip_address INET,
-  user_agent TEXT,
-  created_at TIMESTAMP DEFAULT NOW()
-);
+// Raw SQL migration example:
+// ALTER TABLE "DocumentChunk" ADD COLUMN embedding vector(1536);
 ```
 
 This modular architecture provides:

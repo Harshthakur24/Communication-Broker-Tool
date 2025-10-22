@@ -40,10 +40,10 @@ A private, intelligent, always-updated communication broker that replaces intern
 │  ┌─────────────┐  ┌─────────────────┐  ┌─────────────────────────────────────┐  │
 │  │  Document   │  │   Vector Store  │  │         Response Generator          │  │
 │  │ Processor   │  │                 │  │                                     │  │
-│  │             │  │ • Pinecone/     │  │ • RAG Integration                   │  │
-│  │ • Chunking  │  │   Milvus/FAISS  │  │ • Grounding Check                   │  │
-│  │ • Embedding │  │ • Similarity    │  │ • Answer Provenance                 │  │
-│  │ • Indexing  │  │   Search        │  │ • Style Consistency                 │  │
+│  │             │  │ • PostgreSQL    │  │ • RAG Integration                   │  │
+│  │ • Chunking  │  │   + pgvector     │  │ • Grounding Check                   │  │
+│  │ • Embedding │  │ • Prisma + SQL   │  │ • Answer Provenance                 │  │
+│  │ • Indexing  │  │   similarity     │  │ • Style Consistency                 │  │
 │  └─────────────┘  └─────────────────┘  └─────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────────────────────────┘
                                         │
@@ -92,7 +92,7 @@ A private, intelligent, always-updated communication broker that replaces intern
 ## Data Flow Architecture
 
 ```
-User Input → Intent Detection → Context Analysis → Command Routing
+User Input → Intent Detection → Context Analysis → Command Routing (RBAC gate)
      ↓
 ┌─────────────────────────────────────────────────────────────────┐
 │                    PARALLEL PROCESSING                         │
@@ -103,12 +103,13 @@ User Input → Intent Detection → Context Analysis → Command Routing
 │  │             │  │                 │  │                     │  │
 │  │ 1. RAG      │  │ 1. Validate     │  │ 1. Check Perms      │  │
 │  │ 2. Retrieve │  │ 2. Update KB    │  │ 2. Send Notif       │  │
-│  │ 3. Generate │  │ 3. Sync Integ.  │  │ 3. Log Event        │  │
-│  │ 4. Ground   │  │ 4. Index        │  │ 4. Update Status    │  │
+│  │    (pgvector│  │ 3. Sync Integ.  │  │ 3. Log Event        │  │
+│  │     filter  │  │ 4. Index (pgvec)│  │ 4. Update Status    │  │
+│  │     by ACL) │  │ 5. Emit Events  │  │ 5. Emit Events      │  │
 │  └─────────────┘  └─────────────────┘  └─────────────────────┘  │
 └─────────────────────────────────────────────────────────────────┘
      ↓
-Response Generation → UI Update → Audit Log → User Feedback
+Response Generation → UI Update → Audit Log (immutable) → User Feedback
 ```
 
 ## Event-Driven Architecture
@@ -117,10 +118,11 @@ Response Generation → UI Update → Audit Log → User Feedback
 ┌─────────────────────────────────────────────────────────────────┐
 │                        EVENT BUS                                │
 ├─────────────────────────────────────────────────────────────────┤
-│  • Document Updated    • Project Status Changed                │
+│  • Document Updated    • Project Status Changed                 │
 │  • Policy Modified     • New Employee Added                     │
 │  • Meeting Scheduled   • Integration Webhook Received           │
 │  • User Query          • System Alert Triggered                 │
+│  • RBAC Policy Update  • Data Retention Window Reached          │
 └─────────────────────────────────────────────────────────────────┘
                               │
                               ▼
@@ -128,8 +130,9 @@ Response Generation → UI Update → Audit Log → User Feedback
 │                    EVENT HANDLERS                               │
 ├─────────────────────────────────────────────────────────────────┤
 │  • Knowledge Base Updater  • Notification Dispatcher           │
-│  • Vector Index Rebuilder  • Integration Sync Manager          │
-│  • Permission Validator    • Audit Logger                      │
+│  • Vector Index Updater    • Integration Sync Manager          │
+│  • Permission Validator    • Audit Logger (append-only)        │
+│  • Retention Enforcer      • Anomaly Detector                  │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -139,18 +142,30 @@ Response Generation → UI Update → Audit Log → User Feedback
 - **Framework**: Next.js 15 with React 19
 - **Styling**: Tailwind CSS with custom white/purple theme
 - **State Management**: Zustand or Redux Toolkit
-- **Real-time**: WebSocket connections for live updates
-- **UI Components**: Custom components with Framer Motion animations
+- **Real-time**: WebSocket/SSE for live updates
+- **UI Components**: Chat bubbles, top navbar, notification drawer, context sidebar; subtle animations via Framer Motion
 
 ### Backend
-- **API**: Next.js API routes with tRPC for type-safe APIs
-- **Database**: PostgreSQL for structured data, Redis for caching
-- **Vector Store**: Pinecone or Milvus for embeddings
-- **LLM**: OpenAI GPT-4 or Anthropic Claude for RAG
-- **Authentication**: NextAuth.js with company SSO
+- **API**: Next.js API routes (REST + Webhooks); optional tRPC
+- **ORM**: Prisma
+- **Database**: PostgreSQL (primary)
+- **Vector Store**: PostgreSQL + pgvector (primary); optional Pinecone for large-scale external indexing
+- **RAG**: Retriever over pgvector + grounded generation
+- **LLM**: Enterprise-approved model (e.g., OpenAI, Anthropic) behind server-side proxy
+- **Authentication**: NextAuth.js with company SSO/OAuth2; MFA supported
+
+### Eventing & Orchestration
+- **Event Bus**: NATS or Redis Streams (alternatively Postgres LISTEN/NOTIFY)
+- **Triggers**: Webhooks from Jira/Notion/Confluence/Slack/Teams feed events to handlers
 
 ### Infrastructure
-- **Deployment**: Docker containers on Kubernetes
+- **Deployment**: Docker on Kubernetes
 - **Monitoring**: Prometheus + Grafana
 - **Logging**: ELK Stack (Elasticsearch, Logstash, Kibana)
-- **Security**: Vault for secrets management
+- **Secrets**: Vault for secrets management
+- **Caching**: Redis (session, hot docs, vector cache)
+
+### Security
+- **Encryption**: AES-256 at rest, TLS 1.3 in transit
+- **RBAC**: Role- and scope-based permission matrix enforced in router and retrieval filters
+- **Audit**: Immutable audit logs for every query, change, webhook, and API call
