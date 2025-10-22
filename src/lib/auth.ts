@@ -19,8 +19,8 @@ export const comparePassword = async (password: string, hashedPassword: string):
 
 export const generateToken = (payload: JWTPayload): string => {
   const secret = process.env.JWT_SECRET || 'fallback-secret'
-  const expiresIn = process.env.JWT_EXPIRES_IN || '7d'
-  return jwt.sign(payload, secret, { expiresIn })
+  const expiresIn: string = process.env.JWT_EXPIRES_IN || '7d'
+  return jwt.sign(payload, secret, { expiresIn } as jwt.SignOptions)
 }
 
 export const verifyToken = (token: string): JWTPayload | null => {
