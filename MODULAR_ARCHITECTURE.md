@@ -248,6 +248,77 @@ communication-broker-tool/
 └── README.md
 ```
 
+## Requested Modular Layout (by capability)
+
+This logical layout maps to the existing Next.js project while making module boundaries explicit.
+
+```
+/ui                # Frontend chat app (Next.js), white + purple theme
+  /layout          # Top navbar, left sidebar, right insights panel
+  /chat            # Chat bubbles, input, threading, typing indicators
+  /components      # Base UI library, modals, tooltips, toast
+
+/core              # Intent, context, routing, memory
+  /intent          # Classifier, entity extractor, intent types
+  /context         # Session store, user context, memory windowing
+  /router          # Command router and per-intent routes (query/update/notify)
+  /events          # Event bus, webhook processor, notif dispatcher
+
+/rag               # Retrieval-Augmented Generation
+  /indexing        # Chunking, embedding, index mgmt
+  /retrieval       # Vector search, hybrid search, filters
+  /generation      # Response generation, grounding, provenance
+  /knowledge       # Document repo, versioning, semantic tags
+
+/integrations      # External systems connectors
+  /jira            # Status updates, project sync, webhooks
+  /notion          # Page sync, content extraction
+  /confluence      # Space/page sync, attachments
+  /slack           # Summaries, message sync, bot handler
+  /teams           # Chat sync, meeting processor
+  /common          # Base client, rate limiter, retries
+
+/security          # AuthN/Z, RBAC, audit
+  /auth            # SSO/OAuth2 handlers, token/session mgmt
+  /permissions     # Role manager, permission matrix, policy engine
+  /audit           # Audit logger, reports
+  /encryption      # Key/secret mgmt, data masking
+```
+
+### Mapping to existing codebase
+
+- /ui → `src/components/{layout,chat,ui}` and `src/app/*`
+- /core → `src/lib/*`, `src/hooks/useApi.ts`, and future `src/core/*`
+- /rag → `src/lib/{documentProcessor,ragService,ai}.ts`
+- /integrations → `src/app/api/*` integration routes and future `src/integrations/*`
+- /security → `src/lib/{auth,middleware}.ts`, `src/contexts/AuthContext.tsx`, API guards
+
+### Database models by module (Prisma)
+
+- /security: `User`, `Session`, `Role`, `Permission`, `UserRole`, `RolePermission`, `AuditLog`
+- /rag: `Document`, `DocumentChunk` (optional pgvector column for embeddings)
+- /integrations: `IntegrationConfig`, `WebhookEvent`
+- /core: `ChatSession`, `ChatMessage`
+
+### Command routing pseudocode
+
+```typescript
+// /core/router/CommandRouter.ts
+export async function routeCommand(input: string, user: User) {
+  const intent = await intentDetector.detectIntent(input, { user });
+  switch (intent.type) {
+    case 'QUERY':
+      return ragQueryPipeline(intent, user);
+    case 'UPDATE':
+      return handleUpdate(intent, user); // validates RBAC and calls integrations
+    case 'NOTIFY':
+      return dispatchNotification(intent, user);
+    default:
+      return smallTalk(intent, user);
+  }
+}
+```
+
 ## Core Module Pseudocode
 
 ### 1. Intent Detection Module
