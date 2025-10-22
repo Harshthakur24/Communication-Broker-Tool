@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Eye, EyeOff, Lock, CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
 import { Button, Input } from '@/components/ui'
@@ -17,6 +18,7 @@ export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
     onSuccess,
     className
 }) => {
+    const router = useRouter()
     const [formData, setFormData] = useState({
         password: '',
         confirmPassword: '',
@@ -29,11 +31,7 @@ export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
 
     const validatePassword = (password: string) => {
         const errors = []
-        if (password.length < 8) errors.push('At least 8 characters')
-        if (!/[A-Z]/.test(password)) errors.push('One uppercase letter')
-        if (!/[a-z]/.test(password)) errors.push('One lowercase letter')
-        if (!/\d/.test(password)) errors.push('One number')
-        if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) errors.push('One special character')
+        if (password.length < 6) errors.push('At least 6 characters')
         return errors
     }
 
@@ -115,7 +113,10 @@ export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
                     </p>
 
                     <Button
-                        onClick={onSuccess}
+                        onClick={() => {
+                            onSuccess?.()
+                            router.push('/auth')
+                        }}
                         className="w-full h-12 bg-black hover:bg-gray-800 text-white rounded-xl text-base font-medium"
                     >
                         Continue to Sign In
