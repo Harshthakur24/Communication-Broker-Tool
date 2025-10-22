@@ -351,11 +351,11 @@ export default function Home() {
               <ul className="space-y-3">
                 <li className="flex items-center gap-2 text-gray-600 text-sm">
                   <Mail className="w-4 h-4 text-purple-600" />
-                  <a href="mailto:thakur2004harsh@gmail.com" className="hover:text-purple-600 transition-colors">hello@aihub.com</a>
+                  <a href="mailto:thakur2004harsh@gmail.com" className="hover:text-purple-600 transition-colors">thakur2004harsh@gmail.com</a>
                 </li>
                 <li className="flex items-center gap-2 text-gray-600 text-sm">
                   <Phone className="w-4 h-4 text-purple-600" />
-                  <a href="tel: +91 9311840704" className="hover:text-purple-600 transition-colors">+1 (234) 567-890</a>
+                  <a href="tel: +91 9311840704" className="hover:text-purple-600 transition-colors">+91 9311840704</a>
                 </li>
                 <li className="flex items-start gap-2 text-gray-600 text-sm">
                   <MapPin className="w-4 h-4 text-purple-600 mt-0.5" />
