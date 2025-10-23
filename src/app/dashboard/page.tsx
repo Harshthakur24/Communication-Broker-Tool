@@ -19,6 +19,7 @@ import {
     Bell
 } from 'lucide-react'
 import { ChatSearch } from '@/components/chat/ChatSearch'
+import { TaskList } from '@/components/tasks/TaskList'
 import { motion } from 'framer-motion'
 
 interface Message {
@@ -585,6 +586,9 @@ export default function Dashboard() {
                     </motion.div>
                 </div>
             </div>
+
+            {/* Floating Task List */}
+            <TaskList />
         </div>
     )
 }

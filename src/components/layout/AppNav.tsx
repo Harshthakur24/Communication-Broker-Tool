@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { NotificationBell } from '@/components/notifications/NotificationBell'
 import {
     MessageSquare,
     FileText,
@@ -88,6 +89,7 @@ export const AppNav: React.FC<AppNavProps> = ({ className }) => {
 
                     {/* User Menu */}
                     <div className="hidden md:flex items-center gap-4">
+                        <NotificationBell />
                         <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-white/50 border border-purple-100">
                             <Avatar className="h-8 w-8">
                                 <AvatarFallback className="bg-purple-600 text-white font-semibold text-sm">

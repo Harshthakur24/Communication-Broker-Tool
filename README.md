@@ -45,6 +45,16 @@
 - Protected routes and API endpoints
 - Role-based access control
 
+### 📋 **AI-Powered Task List** ⭐ NEW!
+- Smart sticky note-style task management
+- AI automatically detects and creates tasks from natural language
+- Real-time text analysis with debouncing
+- Priority levels, tags, and due dates
+- Knowledge base integration (tasks are searchable)
+- Real-time notifications with bell icon
+- Beautiful floating panel with glass morphism
+- See [TASK_SYSTEM_GUIDE.md](TASK_SYSTEM_GUIDE.md) for details
+
 ### 💬 **AI-Powered Chat Interface**
 - Real-time conversation with AI assistant
 - Contextual responses based on knowledge base
