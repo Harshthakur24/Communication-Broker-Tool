@@ -1,20 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/middleware'
 import { prisma } from '@/lib/database'
-import { searchDocuments } from '@/lib/ragService'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
 
-export async function GET(request: NextRequest) {
+// POST - Search chat history in database
+export async function POST(request: NextRequest) {
   return withAuth(request, async (authenticatedRequest) => {
     try {
       const user = authenticatedRequest.user!
-      const { searchParams } = new URL(request.url)
-      const query = searchParams.get('q')
-      const limit = parseInt(searchParams.get('limit') || '10')
-      const category = searchParams.get('category')
-      const tags = searchParams.get('tags')?.split(',').filter(Boolean)
+      const { query } = await request.json()
 
       if (!query || query.trim().length < 2) {
         return NextResponse.json({
@@ -24,41 +20,75 @@ export async function GET(request: NextRequest) {
         })
       }
 
-      // Search documents using RAG service
-      const searchResults = await searchDocuments(
-        query.trim(),
-        limit,
-        category || undefined,
-        tags
-      )
+      const searchTerm = query.trim()
 
-      // Format results for chat search
-      const formattedResults = searchResults.map(result => ({
-        id: result.id,
-        title: result.title,
-        content: result.content,
-        category: result.category,
-        tags: result.tags,
-        similarity: result.similarity,
-        source: result.source,
-        snippet: getContentSnippet(result.content, query),
-        relevanceScore: calculateRelevanceScore(result, query),
+      // Search in chat messages for this user
+      const messages = await prisma.chatMessage.findMany({
+        where: {
+          session: {
+            userId: user.id,
+          },
+          content: {
+            contains: searchTerm,
+            mode: 'insensitive',
+          },
+        },
+        include: {
+          session: {
+            select: {
+              id: true,
+              title: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        take: 50,
+      })
+
+      // Group by session and format results
+      const sessionMap = new Map()
+      
+      messages.forEach((msg) => {
+        const sessionId = msg.sessionId
+        if (!sessionMap.has(sessionId)) {
+          sessionMap.set(sessionId, {
+            sessionId,
+            title: msg.session.title || 'Untitled Chat',
+            content: msg.content,
+            timestamp: msg.createdAt.toISOString(),
+            messages: [msg.content],
+          })
+        } else {
+          const existing = sessionMap.get(sessionId)
+          existing.messages.push(msg.content)
+        }
+      })
+
+      const results = Array.from(sessionMap.values()).map((session) => ({
+        sessionId: session.sessionId,
+        title: session.title,
+        content: getContentSnippet(session.content, searchTerm),
+        timestamp: session.timestamp,
+        messageCount: session.messages.length,
+        lastMessage: session.content.substring(0, 200),
       }))
 
-      // Sort by relevance score
-      formattedResults.sort((a, b) => b.relevanceScore - a.relevanceScore)
-
       return NextResponse.json({
-        results: formattedResults,
-        total: formattedResults.length,
-        query: query.trim(),
-        categories: [...new Set(formattedResults.map(r => r.category))],
-        tags: [...new Set(formattedResults.flatMap(r => r.tags))],
+        success: true,
+        results,
+        total: results.length,
+        query: searchTerm,
       })
     } catch (error) {
       console.error('Chat search error:', error)
       return NextResponse.json(
-        { error: 'Failed to search documents' },
+        { 
+          error: 'Failed to search chat history',
+          results: [],
+          total: 0,
+        },
         { status: 500 }
       )
     }
@@ -91,31 +121,3 @@ function getContentSnippet(content: string, query: string, maxLength: number = 2
   
   return snippet
 }
-
-/**
- * Calculate relevance score based on similarity and content match
- */
-function calculateRelevanceScore(result: any, query: string): number {
-  const queryLower = query.toLowerCase()
-  const titleLower = result.title.toLowerCase()
-  const contentLower = result.content.toLowerCase()
-  
-  let score = result.similarity || 0
-  
-  // Boost score for title matches
-  if (titleLower.includes(queryLower)) {
-    score += 0.3
-  }
-  
-  // Boost score for exact phrase matches
-  const exactMatches = (contentLower.match(new RegExp(queryLower, 'g')) || []).length
-  score += exactMatches * 0.1
-  
-  // Boost score for category relevance
-  if (result.category && result.category !== 'general') {
-    score += 0.1
-  }
-  
-  return Math.min(1, score) // Cap at 1.0
-}
-
