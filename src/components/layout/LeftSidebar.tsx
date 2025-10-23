@@ -13,7 +13,7 @@ import {
     Clock,
     Star
 } from 'lucide-react'
-import { Button, Avatar, Badge } from '@/components/ui'
+import { Button, Badge } from '@/components/ui'
 import { cn } from '@/lib/utils'
 
 interface NavItemProps {
@@ -166,12 +166,9 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ className }) => {
             <div className="p-4 border-b border-gray-200/50 bg-gradient-to-r from-purple-50/50 to-white">
                 <div className="flex items-center space-x-3">
                     <div className="relative">
-                        <Avatar
-                            src={user.avatar}
-                            fallback={user.name}
-                            size="md"
-                            className="ring-2 ring-purple-200 shadow-lg"
-                        />
+                        <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center text-white font-semibold ring-2 ring-purple-200 shadow-lg">
+                            {user.name.split(' ').map(n => n[0]).join('')}
+                        </div>
                         <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
                     </div>
                     <div className="flex-1 min-w-0">

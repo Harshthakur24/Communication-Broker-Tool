@@ -41,7 +41,7 @@ interface TaskListProps {
 export const TaskList: React.FC<TaskListProps> = ({ isMinimized = false, onToggle }) => {
     const { user } = useAuth()
     const [tasks, setTasks] = useState<Task[]>([])
-    const [isExpanded, setIsExpanded] = useState(!isMinimized)
+    const [isExpanded, setIsExpanded] = useState(false)
     const [newTaskText, setNewTaskText] = useState('')
     const [isAnalyzing, setIsAnalyzing] = useState(false)
     const [loading, setLoading] = useState(false)
