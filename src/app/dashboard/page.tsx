@@ -16,7 +16,11 @@ import {
     User,
     Sparkles,
     FileStack,
-    Bell
+    Bell,
+    Users,
+    Megaphone,
+    BarChart3,
+    ArrowRight
 } from 'lucide-react'
 import { ChatSearch } from '@/components/chat/ChatSearch'
 import { TaskList } from '@/components/tasks/TaskList'
@@ -403,6 +407,68 @@ export default function Dashboard() {
                                                     </motion.div>
                                                 ))}
                                             </div>
+
+                                            {/* Collaboration Features - Quick Access */}
+                                            <motion.div
+                                                initial={{ opacity: 0, y: 20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ delay: 0.8, duration: 0.5 }}
+                                                className="mt-12"
+                                            >
+                                                <h3 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
+                                                    <Users className="w-6 h-6 text-purple-600" />
+                                                    Collaboration Tools
+                                                </h3>
+                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                    {/* Team Presence */}
+                                                    <motion.div
+                                                        whileHover={{ scale: 1.02 }}
+                                                        onClick={() => router.push('/collaborate')}
+                                                        className="p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200 cursor-pointer group hover:shadow-xl transition-all"
+                                                    >
+                                                        <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                                            <Users className="w-6 h-6 text-white" />
+                                                        </div>
+                                                        <h4 className="font-bold text-gray-900 mb-2 flex items-center justify-between">
+                                                            Team Online
+                                                            <ArrowRight className="w-4 h-4 text-blue-600 group-hover:translate-x-1 transition-transform" />
+                                                        </h4>
+                                                        <p className="text-sm text-gray-600">See who's available and collaborate in real-time</p>
+                                                    </motion.div>
+
+                                                    {/* Announcements */}
+                                                    <motion.div
+                                                        whileHover={{ scale: 1.02 }}
+                                                        onClick={() => router.push('/collaborate')}
+                                                        className="p-6 rounded-2xl bg-gradient-to-br from-orange-50 to-orange-100 border-2 border-orange-200 cursor-pointer group hover:shadow-xl transition-all"
+                                                    >
+                                                        <div className="w-12 h-12 rounded-xl bg-orange-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                                            <Megaphone className="w-6 h-6 text-white" />
+                                                        </div>
+                                                        <h4 className="font-bold text-gray-900 mb-2 flex items-center justify-between">
+                                                            Announcements
+                                                            <ArrowRight className="w-4 h-4 text-orange-600 group-hover:translate-x-1 transition-transform" />
+                                                        </h4>
+                                                        <p className="text-sm text-gray-600">Stay updated with company-wide news</p>
+                                                    </motion.div>
+
+                                                    {/* Quick Polls */}
+                                                    <motion.div
+                                                        whileHover={{ scale: 1.02 }}
+                                                        onClick={() => router.push('/collaborate')}
+                                                        className="p-6 rounded-2xl bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-200 cursor-pointer group hover:shadow-xl transition-all"
+                                                    >
+                                                        <div className="w-12 h-12 rounded-xl bg-green-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                                            <BarChart3 className="w-6 h-6 text-white" />
+                                                        </div>
+                                                        <h4 className="font-bold text-gray-900 mb-2 flex items-center justify-between">
+                                                            Quick Polls
+                                                            <ArrowRight className="w-4 h-4 text-green-600 group-hover:translate-x-1 transition-transform" />
+                                                        </h4>
+                                                        <p className="text-sm text-gray-600">Get instant feedback from your team</p>
+                                                    </motion.div>
+                                                </div>
+                                            </motion.div>
                                         </motion.div>
                                     )}
 

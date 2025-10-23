@@ -11,7 +11,10 @@ import {
     Plus,
     Search,
     Clock,
-    Star
+    Star,
+    Sparkles,
+    Megaphone,
+    BarChart3
 } from 'lucide-react'
 import { Button, Badge } from '@/components/ui'
 import { cn } from '@/lib/utils'
@@ -204,32 +207,60 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ className }) => {
             </div>
 
             {/* Navigation Menu */}
-            <nav className="flex-1 p-4 space-y-2">
+            <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
                 <div className="space-y-1">
                     <NavItem
                         icon={MessageSquare}
-                        label="All Chats"
-                        active={true}
-                    />
-                    <NavItem
-                        icon={FolderOpen}
-                        label="Projects"
-                        count={projects.length}
-                    />
-                    <NavItem
-                        icon={Users}
-                        label="Teams"
-                        count={teams.length}
+                        label="Dashboard"
+                        href="/dashboard"
                     />
                     <NavItem
                         icon={FileText}
                         label="Knowledge Base"
                         href="/knowledge-base"
                     />
-                    <NavItem
-                        icon={Settings}
-                        label="Settings"
-                    />
+
+                    {/* Collaboration Section */}
+                    <div className="pt-4 pb-2">
+                        <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                            Collaboration
+                        </h3>
+                        <div className="space-y-1">
+                            <NavItem
+                                icon={Sparkles}
+                                label="Collab Hub"
+                                href="/collaborate"
+                            />
+                            <NavItem
+                                icon={Users}
+                                label="Team Workspaces"
+                                href="/collaborate"
+                            />
+                            <NavItem
+                                icon={Megaphone}
+                                label="Announcements"
+                                href="/collaborate"
+                            />
+                            <NavItem
+                                icon={BarChart3}
+                                label="Quick Polls"
+                                href="/collaborate"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Other Options */}
+                    <div className="pt-4 border-t border-gray-200">
+                        <NavItem
+                            icon={FolderOpen}
+                            label="Projects"
+                            count={projects.length}
+                        />
+                        <NavItem
+                            icon={Settings}
+                            label="Settings"
+                        />
+                    </div>
                 </div>
             </nav>
 

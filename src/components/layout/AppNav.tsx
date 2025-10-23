@@ -4,7 +4,6 @@ import React from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { NotificationBell } from '@/components/notifications/NotificationBell'
 import {
     MessageSquare,
@@ -12,7 +11,8 @@ import {
     User,
     LogOut,
     Menu,
-    X
+    X,
+    Users
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
@@ -30,6 +30,7 @@ export const AppNav: React.FC<AppNavProps> = ({ className }) => {
     const navigation = [
         { name: 'Dashboard', href: '/dashboard', icon: MessageSquare },
         { name: 'Knowledge Base', href: '/knowledge-base', icon: FileText },
+        { name: 'Collaborate', href: '/collaborate', icon: Users },
         { name: 'Profile', href: '/profile', icon: User },
     ]
 
@@ -91,11 +92,9 @@ export const AppNav: React.FC<AppNavProps> = ({ className }) => {
                     <div className="hidden md:flex items-center gap-4">
                         <NotificationBell />
                         <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-white/50 border border-purple-100">
-                            <Avatar className="h-8 w-8">
-                                <AvatarFallback className="bg-purple-600 text-white font-semibold text-sm">
-                                    {user?.name?.[0] || user?.email?.[0] || 'U'}
-                                </AvatarFallback>
-                            </Avatar>
+                            <div className="h-8 w-8 rounded-full bg-purple-600 text-white font-semibold text-sm flex items-center justify-center">
+                                {user?.name?.[0] || user?.email?.[0] || 'U'}
+                            </div>
                             <div className="hidden lg:block">
                                 <p className="text-sm font-semibold text-gray-900">{user?.name}</p>
                                 <p className="text-xs text-gray-500">{user?.email}</p>
@@ -142,11 +141,9 @@ export const AppNav: React.FC<AppNavProps> = ({ className }) => {
                         <div className="px-4 py-4 space-y-2">
                             {/* User info */}
                             <div className="flex items-center gap-3 p-3 rounded-xl bg-purple-50 mb-4">
-                                <Avatar className="h-10 w-10">
-                                    <AvatarFallback className="bg-purple-600 text-white font-semibold">
-                                        {user?.name?.[0] || user?.email?.[0] || 'U'}
-                                    </AvatarFallback>
-                                </Avatar>
+                                <div className="h-10 w-10 rounded-full bg-purple-600 text-white font-semibold flex items-center justify-center">
+                                    {user?.name?.[0] || user?.email?.[0] || 'U'}
+                                </div>
                                 <div>
                                     <p className="text-sm font-semibold text-gray-900">{user?.name}</p>
                                     <p className="text-xs text-gray-500">{user?.email}</p>
