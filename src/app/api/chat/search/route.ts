@@ -64,7 +64,6 @@ export async function GET(request: NextRequest) {
     }
   })
 }
-
 /**
  * Extract a relevant snippet from content based on search query
  */
@@ -119,3 +118,4 @@ function calculateRelevanceScore(result: any, query: string): number {
   
   return Math.min(1, score) // Cap at 1.0
 }
+
